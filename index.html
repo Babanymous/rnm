@@ -3,66 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rick and Morty Multiverse Map</title>
+    <title>The Central Finite Curve</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; }
-        #canvas-container { width: 100vw; height: 100vh; display: block; }
-        
-        #ui-layer {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #97ce4c;
-            pointer-events: none;
-            text-shadow: 0 0 10px #97ce4c;
-        }
-        h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
-        p { margin: 5px 0; font-size: 14px; opacity: 0.8; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@300;400&display=swap');
 
-        #info-modal {
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Roboto Mono', monospace; }
+        
+        #ui-container {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            background: rgba(0, 20, 0, 0.9);
-            border: 2px solid #97ce4c;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .hud-header {
             padding: 20px;
+            background: linear-gradient(180deg, rgba(0,20,0,0.8) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(151, 206, 76, 0.3);
+            text-shadow: 0 0 10px rgba(151, 206, 76, 0.8);
+        }
+
+        h1 { margin: 0; color: #97ce4c; font-family: 'Orbitron', sans-serif; font-size: 28px; letter-spacing: 2px; }
+        .subtitle { color: #4cb5ce; font-size: 12px; margin-top: 5px; opacity: 0.8; }
+
+        #scanner-modal {
+            position: absolute;
+            top: 50%; right: 20px;
+            transform: translateY(-50%);
+            width: 320px;
+            background: rgba(10, 15, 10, 0.95);
+            border: 1px solid #97ce4c;
+            border-right: 4px solid #97ce4c;
+            padding: 0;
             color: #fff;
             display: none;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(151, 206, 76, 0.4);
+            pointer-events: auto;
+            backdrop-filter: blur(5px);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.8);
         }
-        #info-modal h2 { margin-top: 0; color: #97ce4c; }
-        .data-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
-        .label { color: #aaa; font-size: 12px; }
-        .value { font-weight: bold; }
+
+        .modal-header {
+            background: rgba(151, 206, 76, 0.1);
+            padding: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .modal-header h2 { margin: 0; color: #fff; font-size: 18px; font-family: 'Orbitron', sans-serif; }
+        .modal-type { color: #97ce4c; font-size: 11px; text-transform: uppercase; margin-top: 5px; display: block; }
+
+        .modal-body { padding: 15px; }
         
-        #loading {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: #97ce4c;
-            font-size: 20px;
-            animation: pulse 1s infinite;
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; }
+        .stat-label { color: #888; }
+        .stat-val { color: #eee; font-weight: bold; text-align: right; }
+
+        .residents-box {
+            margin-top: 15px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
         }
-        @keyframes pulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+        .res-title { font-size: 11px; color: #4cb5ce; text-transform: uppercase; margin-bottom: 8px; }
+        #res-list {
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #aaa;
+            padding-left: 0;
+            list-style: none;
+            margin: 0;
+        }
+        #res-list li { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        #loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 999;
+            transition: opacity 1s ease;
+        }
+        .portal-spin {
+            width: 50px; height: 50px;
+            border: 4px solid #97ce4c;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .scan-line {
+            width: 100%; height: 2px; background: #97ce4c;
+            position: absolute; top: 0; left: 0;
+            animation: scan 2s linear infinite;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        @keyframes scan { 0% { top: 0; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
     </style>
 </head>
 <body>
 
-    <div id="ui-layer">
-        <h1>Multiverse C-137</h1>
-        <p>System: Central Finite Curve</p>
-        <p>Instructions: Drag to rotate, Scroll to zoom, Click a planet.</p>
+    <div id="loading-overlay"><div class="portal-spin"></div></div>
+
+    <div id="ui-container">
+        <div class="hud-header">
+            <h1>Multiverse Map</h1>
+            <div class="subtitle">System: Central Finite Curve // Dimension C-137</div>
+        </div>
     </div>
 
-    <div id="loading">calibrating portal fluid...</div>
-
-    <div id="info-modal">
-        <h2 id="loc-name">Location Name</h2>
-        <div class="data-row"><span class="label">Type:</span> <span class="value" id="loc-type">Planet</span></div>
-        <div class="data-row"><span class="label">Dimension:</span> <span class="value" id="loc-dim">Unknown</span></div>
-        <div class="data-row"><span class="label">Residents:</span> <span class="value" id="loc-residents">0</span></div>
+    <div id="scanner-modal">
+        <div class="scan-line"></div>
+        <div class="modal-header">
+            <h2 id="info-name">Earth (C-137)</h2>
+            <span class="modal-type" id="info-type">Planet</span>
+        </div>
+        <div class="modal-body">
+            <div class="stat-row"><span class="stat-label">Dimension</span><span class="stat-val" id="info-dim">C-137</span></div>
+            <div class="stat-row"><span class="stat-label">Population</span><span class="stat-val" id="info-pop">Unknown</span></div>
+            
+            <div class="residents-box">
+                <div class="res-title">Detected Lifeforms</div>
+                <ul id="res-list">
+                    <li>Scanning...</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <script type="importmap">
@@ -79,137 +147,271 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.002);
+        scene.fog = new THREE.FogExp2(0x050505, 0.015);
 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 50;
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 30, 60);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ReinhardToneMapping;
         document.body.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.maxDistance = 200;
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const ambientLight = new THREE.AmbientLight(0x404040, 2); 
         scene.add(ambientLight);
-        const pointLight = new THREE.PointLight(0x97ce4c, 2, 100);
-        pointLight.position.set(0, 0, 0);
-        scene.add(pointLight);
+        
+        const sunLight = new THREE.PointLight(0xffffff, 2, 300);
+        sunLight.position.set(0, 50, 0);
+        scene.add(sunLight);
 
-        const starGeometry = new THREE.BufferGeometry();
-        const starCount = 2000;
-        const starPos = new Float32Array(starCount * 3);
-        for(let i=0; i<starCount*3; i++) {
-            starPos[i] = (Math.random() - 0.5) * 400;
+        const greenGlow = new THREE.PointLight(0x97ce4c, 3, 100);
+        greenGlow.position.set(0, 0, 0);
+        scene.add(greenGlow);
+
+        function createStarfield() {
+            const geometry = new THREE.BufferGeometry();
+            const count = 5000;
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            for(let i = 0; i < count; i++) {
+                positions[i*3] = (Math.random() - 0.5) * 600;
+                positions[i*3+1] = (Math.random() - 0.5) * 600;
+                positions[i*3+2] = (Math.random() - 0.5) * 600;
+                
+                const colorType = Math.random();
+                if(colorType > 0.9) { 
+                    colors[i*3] = 0.59; colors[i*3+1] = 0.8; colors[i*3+2] = 0.3; 
+                } else {
+                    colors[i*3] = 0.8; colors[i*3+1] = 0.8; colors[i*3+2] = 0.9; 
+                }
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({ size: 0.4, vertexColors: true, transparent: true, opacity: 0.8 });
+            return new THREE.Points(geometry, material);
         }
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        scene.add(stars);
+        scene.add(createStarfield());
 
-        const planetMeshes = [];
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
+        function createCitadel() {
+            const citadelGroup = new THREE.Group();
+
+            const matDark = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3, metalness: 0.8 });
+            const matLight = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.4, metalness: 0.5 });
+            const matGlass = new THREE.MeshStandardMaterial({ color: 0x97ce4c, emissive: 0x2a4411, transparent: true, opacity: 0.9 });
+
+            const shaftGeo = new THREE.CylinderGeometry(2, 4, 30, 8);
+            const shaft = new THREE.Mesh(shaftGeo, matDark);
+            citadelGroup.add(shaft);
+
+            const domeGeo = new THREE.SphereGeometry(6, 32, 16, 0, Math.PI * 2, 0, Math.PI/2);
+            const dome = new THREE.Mesh(domeGeo, matGlass);
+            dome.position.y = 8;
+            dome.rotation.x = Math.PI; 
+            citadelGroup.add(dome);
+
+            const ringGeo = new THREE.TorusGeometry(12, 1.5, 16, 50);
+            const ring = new THREE.Mesh(ringGeo, matLight);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = -5;
+            citadelGroup.add(ring);
+
+            for(let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const satelliteGeo = new THREE.CylinderGeometry(1, 1, 4);
+                const satellite = new THREE.Mesh(satelliteGeo, matDark);
+                satellite.position.set(Math.cos(angle) * 12, -5, Math.sin(angle) * 12);
+                citadelGroup.add(satellite);
+            }
+
+            const userData = {
+                name: "The Citadel of Ricks",
+                type: "Space Station",
+                dimension: "unknown",
+                residents: [], 
+                isCitadel: true
+            };
+            
+            shaft.userData = userData;
+            dome.userData = userData;
+            ring.userData = userData;
+
+            citadelGroup.position.set(0, 0, 0);
+            return citadelGroup;
+        }
+
+        const citadel = createCitadel();
+        scene.add(citadel);
+
+        const interactables = [];
+        interactables.push(...citadel.children);
+
+        function getShapeForType(type, color) {
+            let geometry, material;
+            
+            const standardMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8, metalness: 0.1 });
+
+            if (type.includes("Station") || type.includes("Citadel")) {
+                geometry = new THREE.OctahedronGeometry(1.5, 0);
+                material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.2, metalness: 0.9 });
+            } 
+            else if (type.includes("Microverse") || type.includes("Battery")) {
+                geometry = new THREE.IcosahedronGeometry(1.2, 1);
+                material = new THREE.MeshBasicMaterial({ color: color, wireframe: true });
+            }
+            else if (type.includes("Cluster")) {
+                geometry = new THREE.DodecahedronGeometry(1.5, 0);
+                material = standardMat;
+            }
+            else {
+                geometry = new THREE.SphereGeometry(1.2, 16, 16);
+                material = standardMat;
+            }
+            
+            return new THREE.Mesh(geometry, material);
+        }
 
         async function fetchUniverse() {
             try {
-                const response = await fetch('https://rickandmortyapi.com/api/location');
-                const data = await response.json();
-                
-                document.getElementById('loading').style.display = 'none';
-                
-                data.results.forEach(location => {
-                    createPlanet(location);
+                const page1 = fetch('https://rickandmortyapi.com/api/location?page=1').then(r => r.json());
+                const page2 = fetch('https://rickandmortyapi.com/api/location?page=2').then(r => r.json());
+                const page3 = fetch('https://rickandmortyapi.com/api/location?page=3').then(r => r.json());
+
+                const results = await Promise.all([page1, page2, page3]);
+                const locations = [...results[0].results, ...results[1].results, ...results[2].results];
+
+                document.getElementById('loading-overlay').style.opacity = 0;
+                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 1000);
+
+                let angle = 0;
+                let radius = 15; 
+
+                locations.forEach((loc, index) => {
+                    if (loc.name.includes("Citadel")) return; 
+
+                    let colorHex;
+                    switch(loc.type) {
+                        case 'Planet': colorHex = 0x3498db; break;
+                        case 'Cluster': colorHex = 0x9b59b6; break;
+                        case 'Space Station': colorHex = 0x95a5a6; break;
+                        case 'Microverse': colorHex = 0xe74c3c; break;
+                        case 'TV': colorHex = 0xf1c40f; break; 
+                        default: colorHex = 0x2ecc71;
+                    }
+
+                    const obj = getShapeForType(loc.type, colorHex);
+
+                    angle += 0.5; 
+                    radius += 0.2; 
+                    
+                    const x = Math.cos(angle) * radius + (Math.random() - 0.5) * 5;
+                    const z = Math.sin(angle) * radius + (Math.random() - 0.5) * 5;
+                    const y = (Math.random() - 0.5) * (radius * 0.3);
+
+                    obj.position.set(x, y, z);
+                    
+                    obj.userData = {
+                        name: loc.name,
+                        type: loc.type,
+                        dimension: loc.dimension,
+                        residents: loc.residents
+                    };
+
+                    scene.add(obj);
+                    interactables.push(obj);
                 });
 
-            } catch (error) {
-                console.error("Portal Gun Malfunction:", error);
-                document.getElementById('loading').innerText = "Err: Portal Fluid Low";
+            } catch (err) {
+                console.error("API Error", err);
             }
-        }
-
-        function createPlanet(data) {
-            const size = Math.random() * 2 + 1; 
-            const geometry = new THREE.IcosahedronGeometry(size, 1);
-            
-            const colors = [0x97ce4c, 0x4cb5ce, 0xce4c4c, 0xc4ce4c, 0x8a4cce];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-
-            const material = new THREE.MeshStandardMaterial({ 
-                color: color, 
-                roughness: 0.7,
-                metalness: 0.2,
-                flatShading: true
-            });
-
-            const planet = new THREE.Mesh(geometry, material);
-
-            planet.position.x = (Math.random() - 0.5) * 100;
-            planet.position.y = (Math.random() - 0.5) * 60;
-            planet.position.z = (Math.random() - 0.5) * 60;
-
-            planet.userData = { 
-                name: data.name,
-                type: data.type,
-                dimension: data.dimension,
-                residents: data.residents.length
-            };
-
-            scene.add(planet);
-            planetMeshes.push(planet);
         }
 
         fetchUniverse();
 
-        function onMouseClick(event) {
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let selectedObject = null;
+
+        window.addEventListener('click', (event) => {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(planetMeshes);
+            const intersects = raycaster.intersectObjects(interactables);
 
             if (intersects.length > 0) {
                 const target = intersects[0].object;
-                showInfo(target.userData);
                 
-                const originalColor = target.material.color.getHex();
-                target.material.color.setHex(0xffffff);
-                setTimeout(() => {
-                    target.material.color.setHex(originalColor);
-                }, 200);
+                if(selectedObject && selectedObject !== target && !selectedObject.userData.isCitadel) {
+                    selectedObject.material.emissive.setHex(0x000000);
+                }
+                
+                selectedObject = target;
+                if(!target.userData.isCitadel && target.material.emissive) {
+                    target.material.emissive.setHex(0x333333);
+                }
+                
+                updateUI(target.userData);
+                controls.autoRotate = false;
             } else {
-                hideInfo();
+                controls.autoRotate = true;
+                document.getElementById('scanner-modal').style.display = 'none';
+            }
+        });
+
+        async function updateUI(data) {
+            const modal = document.getElementById('scanner-modal');
+            const list = document.getElementById('res-list');
+            
+            modal.style.display = 'block';
+            document.getElementById('info-name').innerText = data.name;
+            document.getElementById('info-type').innerText = data.type;
+            document.getElementById('info-dim').innerText = data.dimension;
+            document.getElementById('info-pop').innerText = data.residents.length > 0 ? data.residents.length + " Lifeforms" : "Uninhabited";
+
+            list.innerHTML = '<li>Accessing biometric database...</li>';
+
+            if (data.residents.length === 0) {
+                list.innerHTML = '<li>No lifeforms detected.</li>';
+                return;
+            }
+
+            const residentUrls = data.residents.slice(0, 5);
+            try {
+                const fetches = residentUrls.map(url => fetch(url).then(res => res.json()));
+                const residents = await Promise.all(fetches);
+                
+                list.innerHTML = '';
+                residents.forEach(char => {
+                    const li = document.createElement('li');
+                    li.innerText = `> ${char.name} (${char.species})`;
+                    list.appendChild(li);
+                });
+                
+                if (data.residents.length > 5) {
+                    const more = document.createElement('li');
+                    more.style.fontStyle = 'italic';
+                    more.innerText = `...and ${data.residents.length - 5} others`;
+                    list.appendChild(more);
+                }
+
+            } catch (e) {
+                list.innerHTML = '<li>Database Encryption Error.</li>';
             }
         }
 
-        function showInfo(data) {
-            const modal = document.getElementById('info-modal');
-            document.getElementById('loc-name').innerText = data.name;
-            document.getElementById('loc-type').innerText = data.type;
-            document.getElementById('loc-dim').innerText = data.dimension;
-            document.getElementById('loc-residents').innerText = data.residents;
-            modal.style.display = 'block';
-        }
-
-        function hideInfo() {
-            document.getElementById('info-modal').style.display = 'none';
-        }
-
-        window.addEventListener('click', onMouseClick);
-
         function animate() {
             requestAnimationFrame(animate);
-
-            planetMeshes.forEach(planet => {
-                planet.rotation.x += 0.002;
-                planet.rotation.y += 0.002;
-            });
-
-            stars.rotation.y -= 0.0005;
-
+            citadel.rotation.y += 0.002;
             controls.update();
             renderer.render(scene, camera);
         }
@@ -224,4 +426,3 @@
     </script>
 </body>
 </html>
-
