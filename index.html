@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -390,10 +390,6 @@
                 <span class="stat-label">Population</span>
                 <span class="stat-val" id="info-pop">Unknown</span>
             </div>
-            <div class="stat-row">
-                <span class="stat-label">Threat Level</span>
-                <span class="stat-val" id="info-threat">Unknown</span>
-            </div>
             
             <div class="description" id="info-desc">
                 Scanning location data...
@@ -422,7 +418,7 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.008);
+        scene.fog = new THREE.FogExp2(0x0a0a15, 0.004);
 
         const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 40, 80);
@@ -431,7 +427,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.8;
         document.body.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -442,21 +438,25 @@
         controls.maxDistance = 300;
         controls.minDistance = 20;
 
-        // Enhanced Lighting
-        const ambientLight = new THREE.AmbientLight(0x404060, 1.5); 
+        // Brighter Lighting
+        const ambientLight = new THREE.AmbientLight(0x606080, 3); 
         scene.add(ambientLight);
         
-        const sunLight = new THREE.PointLight(0xffffff, 2.5, 400);
+        const sunLight = new THREE.PointLight(0xffffff, 5, 500);
         sunLight.position.set(0, 80, 0);
         scene.add(sunLight);
 
-        const portalLight = new THREE.PointLight(0x97ce4c, 4, 150);
+        const portalLight = new THREE.PointLight(0x97ce4c, 6, 200);
         portalLight.position.set(0, 0, 0);
         scene.add(portalLight);
 
-        const blueAccent = new THREE.PointLight(0x4cb5ce, 2, 100);
+        const blueAccent = new THREE.PointLight(0x4cb5ce, 4, 150);
         blueAccent.position.set(-50, 20, 50);
         scene.add(blueAccent);
+
+        const secondaryLight = new THREE.PointLight(0xffffff, 3, 300);
+        secondaryLight.position.set(50, -20, -50);
+        scene.add(secondaryLight);
 
         // Enhanced Starfield with multiple layers
         function createStarfield() {
@@ -598,8 +598,7 @@
                 dimension: "Trans-Dimensional",
                 residents: [], 
                 isCitadel: true,
-                description: "The governing body for all Ricks and Mortys in the Central Finite Curve. A massive space station where thousands of alternate versions coexist.",
-                threat: "EXTREME"
+                description: "The seat of Rick government, where thousands of Ricks and Mortys from across dimensions live. Featured prominently in Season 3, Episode 7 where Evil Morty was elected president."
             };
             
             citadelGroup.children.forEach(child => {
@@ -616,7 +615,7 @@
         const interactables = [];
         interactables.push(...citadel.children);
 
-        // Lore-accurate custom locations with detailed descriptions
+        // Lore-accurate custom locations with show role descriptions
         const customLocations = [
             {
                 name: "Anatomy Park",
@@ -625,8 +624,7 @@
                 color: 0xe74c3c,
                 shape: "microverse",
                 scale: 1.5,
-                description: "A theme park built inside a homeless man's body. Features attractions like Pirates of the Pancreas and Haunted Liver.",
-                threat: "HIGH",
+                description: "Where Rick miniaturized Morty and sent him inside a homeless man to save a theme park (Season 1, Episode 3). Features attractions like Pirates of the Pancreas.",
                 position: { x: 25, y: 5, z: 15 }
             },
             {
@@ -636,8 +634,7 @@
                 color: 0x8B4513,
                 shape: "planet",
                 scale: 1.8,
-                description: "Rick's original dimension where a love potion went catastrophically wrong, transforming everyone into grotesque Cronenberg monsters.",
-                threat: "CRITICAL",
+                description: "Rick's original home dimension before the love potion disaster. Rick and Morty abandoned it, leaving behind Cronenberg versions of Jerry, Beth, and Summer (Season 1, Episode 6).",
                 position: { x: -30, y: -10, z: 20 }
             },
             {
@@ -647,8 +644,7 @@
                 color: 0xf1c40f,
                 shape: "station",
                 scale: 1.3,
-                description: "The ultimate intergalactic arcade. Home to Roy: A Life Well Lived and countless other immersive games.",
-                threat: "LOW",
+                description: "An intergalactic arcade where Morty played Roy: A Life Well Lived and Rick went 'off the grid' (Season 2, Episode 2). Morty got addicted to the games here.",
                 position: { x: 40, y: 15, z: -10 }
             },
             {
@@ -658,8 +654,7 @@
                 color: 0xe84393,
                 shape: "planet",
                 scale: 1.6,
-                description: "A war-torn planet ruled by giant warrior women. The males live as subservient beings.",
-                threat: "EXTREME",
+                description: "Where Morty bought a sex robot and accidentally had a rapidly-aging son, Morty Jr. Ruled by giant Amazonian women (Season 1, Episode 7).",
                 position: { x: -20, y: 8, z: -35 }
             },
             {
@@ -669,8 +664,7 @@
                 color: 0xa00000,
                 shape: "planet",
                 scale: 1.5,
-                description: "A planet that annually celebrates a festival of murder and mayhem, blessed by their cat-like god.",
-                threat: "CRITICAL",
+                description: "A planet with an annual purge festival where Rick and Morty helped a rebellion. Rick went on a murder spree here (Season 2, Episode 9).",
                 position: { x: 15, y: -15, z: -40 }
             },
             {
@@ -680,8 +674,7 @@
                 color: 0xff69b4,
                 shape: "dimension",
                 scale: 1.4,
-                description: "A fantasy world created by Rick for Beth. Tommy lives here now after... the incident.",
-                threat: "MODERATE",
+                description: "Rick's fantasy world created for young Beth. Tommy was trapped here and created a disturbing civilization of inbred offspring (Season 3, Episode 9).",
                 position: { x: -40, y: 12, z: 5 }
             },
             {
@@ -691,8 +684,7 @@
                 color: 0x9b59b6,
                 shape: "planet",
                 scale: 1.7,
-                description: "Home to Unity, the hive-mind entity and Rick's former lover. An entire civilization controlled by one consciousness.",
-                threat: "HIGH",
+                description: "Home planet of Unity, the hive-mind entity and Rick's ex-girlfriend. Their reunion nearly led to Rick's suicide (Season 2, Episode 3).",
                 position: { x: 35, y: -8, z: 30 }
             },
             {
@@ -702,8 +694,7 @@
                 color: 0xb8860b,
                 shape: "planet",
                 scale: 1.2,
-                description: "Scientifically not a planet anymore, but Jerry didn't need to know that. Rich in plutonium.",
-                threat: "LOW",
+                description: "Where Jerry was taken to be convinced that Pluto is a planet. He briefly became a celebrity among Plutonians before the truth came out (Season 1, Episode 9).",
                 position: { x: -15, y: 20, z: -15 }
             },
             {
@@ -713,8 +704,7 @@
                 color: 0x708090,
                 shape: "planet",
                 scale: 1.3,
-                description: "A dimension where everything and everyone is made of gears. Gearhead's home dimension.",
-                threat: "LOW",
+                description: "Gearhead's home dimension where everything is mechanical. Featured at Rick's house party that got raided by the Federation (Season 2, Episode 10).",
                 position: { x: 28, y: -12, z: -25 }
             },
             {
@@ -724,8 +714,7 @@
                 color: 0xffc0cb,
                 shape: "dimension",
                 scale: 1.1,
-                description: "Everyone has a hamster in their butt. It's exactly what it sounds like.",
-                threat: "LOW",
+                description: "A dimension where everyone has hamsters living in their butts. Rick briefly visited here, one of many bizarre realities (Season 1, Episode 10).",
                 position: { x: -32, y: -5, z: -20 }
             },
             {
@@ -735,8 +724,7 @@
                 color: 0xdda15e,
                 shape: "dimension",
                 scale: 1.2,
-                description: "A dimension inhabited entirely by testicle-shaped monsters. Best not to linger.",
-                threat: "MODERATE",
+                description: "An alternate dimension filled with testicle-shaped creatures. Rick hid here briefly during his multiverse adventures (Season 1, Episode 1).",
                 position: { x: 22, y: 18, z: 35 }
             },
             {
@@ -746,8 +734,7 @@
                 color: 0x00bfff,
                 shape: "planet",
                 scale: 1.5,
-                description: "Birdperson's home planet. A society of highly intelligent avian warriors. In memoriam.",
-                threat: "MODERATE",
+                description: "Birdperson's homeworld, where his wedding to Tammy took place before she revealed herself as a Galactic Federation agent and killed him (Season 2, Episode 10).",
                 position: { x: 45, y: 3, z: -15 }
             },
             {
@@ -757,8 +744,7 @@
                 color: 0xff4500,
                 shape: "microverse",
                 scale: 1.8,
-                description: "A universe Rick created to power his spaceship. Contains civilizations unaware they're generating electricity.",
-                threat: "MODERATE",
+                description: "A miniature universe Rick created to power his car battery. Contains Zeep's miniverse and Kyle's teenyverse, each making smaller universes (Season 2, Episode 6).",
                 position: { x: -25, y: -18, z: 28 }
             },
             {
@@ -768,8 +754,7 @@
                 color: 0x4169e1,
                 shape: "station",
                 scale: 1.2,
-                description: "An outpost selling illegal alien pheromones. They're not subtle about it.",
-                threat: "MODERATE",
+                description: "A space station where Rick bought alien pheromones that made Morty attractive. Led to Morty's bizarre alien offspring adventure (Season 4, Episode 7).",
                 position: { x: 18, y: 22, z: -30 }
             },
             {
@@ -779,8 +764,7 @@
                 color: 0x87ceeb,
                 shape: "dimension",
                 scale: 1.3,
-                description: "Home of Jerry's friend Rick, the nicest and 'dumbest' Rick. He never had a Beth.",
-                threat: "MINIMAL",
+                description: "Home of the kindest Rick who never had a daughter. He became Jerry's friend at the Citadel and invented ovenless brownies (Season 1, Episode 10).",
                 position: { x: -48, y: 8, z: -8 }
             }
         ];
@@ -878,8 +862,7 @@
                 type: loc.type,
                 dimension: loc.dimension,
                 residents: [],
-                description: loc.description,
-                threat: loc.threat
+                description: loc.description
             };
 
             scene.add(obj);
@@ -960,8 +943,7 @@
                         type: loc.type,
                         dimension: loc.dimension,
                         residents: loc.residents,
-                        description: `A ${loc.type.toLowerCase()} in dimension ${loc.dimension}. Further details classified.`,
-                        threat: "UNKNOWN"
+                        description: `Featured in Rick and Morty. A ${loc.type.toLowerCase()} location in ${loc.dimension}.`
                     };
 
                     scene.add(obj);
@@ -1021,7 +1003,6 @@
             document.getElementById('info-name').innerText = data.name;
             document.getElementById('info-type').innerText = data.type;
             document.getElementById('info-dim').innerText = data.dimension;
-            document.getElementById('info-threat').innerText = data.threat || "UNKNOWN";
             document.getElementById('info-desc').innerText = data.description || "No additional data available.";
             document.getElementById('info-pop').innerText = data.residents.length > 0 ? data.residents.length + " Lifeforms" : "Uninhabited";
 
@@ -1113,3 +1094,4 @@
     </script>
 </body>
 </html>
+
