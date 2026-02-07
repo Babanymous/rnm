@@ -3,1177 +3,1265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Central Finite Curve - Enhanced</title>
+    <title>Interdimensional Cartography System</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;700&display=swap');
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            background: radial-gradient(ellipse at center, #0a0a15 0%, #000000 100%);
-            font-family: 'Roboto Mono', monospace; 
-        }
-        
-        #ui-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            z-index: 10;
-        }
-
-        .hud-header {
-            padding: 25px 30px;
-            background: linear-gradient(180deg, rgba(5,15,5,0.95) 0%, rgba(5,15,5,0.7) 70%, transparent 100%);
-            border-bottom: 2px solid rgba(151, 206, 76, 0.4);
-            box-shadow: 0 4px 20px rgba(151, 206, 76, 0.2);
-        }
-
-        h1 { 
-            margin: 0; 
-            color: #97ce4c; 
-            font-family: 'Orbitron', sans-serif; 
-            font-size: 32px; 
-            font-weight: 900;
-            letter-spacing: 3px; 
-            text-shadow: 0 0 20px rgba(151, 206, 76, 1), 0 0 40px rgba(151, 206, 76, 0.5);
-            animation: glitch 3s infinite;
-        }
-        
-        @keyframes glitch {
-            0%, 90%, 100% { opacity: 1; }
-            92%, 94% { opacity: 0.8; transform: translateX(2px); }
-            93%, 95% { opacity: 0.9; transform: translateX(-2px); }
-        }
-        
-        .subtitle { 
-            color: #4cb5ce; 
-            font-size: 13px; 
-            margin-top: 8px; 
-            opacity: 0.9;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(76, 181, 206, 0.8);
-        }
-
-        .hud-footer {
-            padding: 20px 30px;
-            background: linear-gradient(0deg, rgba(5,15,5,0.95) 0%, rgba(5,15,5,0.7) 70%, transparent 100%);
-            border-top: 2px solid rgba(151, 206, 76, 0.4);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: auto;
-        }
-
-        .legend {
-            display: flex;
-            gap: 25px;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 11px;
-            color: #aaa;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .legend-icon {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            box-shadow: 0 0 10px currentColor;
-        }
-
-        .controls-hint {
-            font-size: 11px;
-            color: #666;
-            text-align: right;
-        }
-
-        #scanner-modal {
-            position: absolute;
-            top: 50%; right: 30px;
-            transform: translateY(-50%);
-            width: 380px;
-            background: rgba(5, 10, 5, 0.98);
-            border: 2px solid #97ce4c;
-            border-right: 5px solid #97ce4c;
-            padding: 0;
-            color: #fff;
-            display: none;
-            pointer-events: auto;
-            backdrop-filter: blur(10px);
-            box-shadow: -15px 0 40px rgba(0,0,0,0.9), 0 0 30px rgba(151, 206, 76, 0.3);
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(-50%) translateX(100px); opacity: 0; }
-            to { transform: translateY(-50%) translateX(0); opacity: 1; }
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, rgba(151, 206, 76, 0.2) 0%, rgba(151, 206, 76, 0.05) 100%);
-            padding: 20px;
-            border-bottom: 1px solid rgba(151, 206, 76, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .modal-header::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(151, 206, 76, 0.1), transparent);
-            animation: shine 3s infinite;
-        }
-
-        @keyframes shine {
-            to { left: 100%; }
-        }
-
-        .modal-header h2 { 
-            margin: 0; 
-            color: #fff; 
-            font-size: 20px; 
-            font-family: 'Orbitron', sans-serif; 
-            font-weight: 700;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-        
-        .modal-type { 
-            color: #97ce4c; 
-            font-size: 12px; 
-            text-transform: uppercase; 
-            margin-top: 8px; 
-            display: block;
-            letter-spacing: 2px;
-            font-weight: 700;
-        }
-
-        .modal-body { padding: 20px; }
-        
-        .stat-row { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 14px; 
-            font-size: 14px;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .stat-label { 
-            color: #888; 
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 1px;
-        }
-        
-        .stat-val { 
-            color: #eee; 
-            font-weight: bold; 
-            text-align: right;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-        }
-
-        .description {
-            margin: 15px 0;
-            padding: 12px;
-            background: rgba(76, 181, 206, 0.05);
-            border-left: 3px solid #4cb5ce;
-            font-size: 12px;
-            line-height: 1.6;
-            color: #bbb;
-            font-style: italic;
-        }
-
-        .residents-box {
-            margin-top: 20px;
-            border-top: 2px solid rgba(151, 206, 76, 0.2);
-            padding-top: 15px;
-        }
-        
-        .res-title { 
-            font-size: 12px; 
-            color: #4cb5ce; 
-            text-transform: uppercase; 
-            margin-bottom: 12px;
-            letter-spacing: 2px;
-            font-weight: 700;
-        }
-        
-        #res-list {
-            max-height: 120px;
-            overflow-y: auto;
-            font-size: 13px;
-            color: #aaa;
-            padding-left: 0;
-            list-style: none;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        #res-list::-webkit-scrollbar { width: 6px; }
-        #res-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-        #res-list::-webkit-scrollbar-thumb { background: #97ce4c; border-radius: 3px; }
-        
-        #res-list li { 
-            padding: 6px 10px; 
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            transition: background 0.2s;
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            overflow: hidden;
+            color: #00ff00;
         }
         
-        #res-list li:hover {
-            background: rgba(151, 206, 76, 0.1);
-        }
-
-        #loading-overlay {
-            position: absolute; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%;
-            background: radial-gradient(ellipse at center, #0a0a15 0%, #000000 100%);
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center;
-            z-index: 999;
-            transition: opacity 1s ease;
-        }
-        
-        .portal-spin {
-            width: 80px; height: 80px;
-            border: 6px solid transparent;
-            border-top-color: #97ce4c;
-            border-right-color: #4cb5ce;
-            border-radius: 50%;
-            animation: portalSpin 1s linear infinite;
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
             position: relative;
         }
-
-        .portal-spin::before,
-        .portal-spin::after {
-            content: '';
+        
+        #hud {
             position: absolute;
-            border-radius: 50%;
-        }
-
-        .portal-spin::before {
-            top: 5px; left: 5px; right: 5px; bottom: 5px;
-            border: 6px solid transparent;
-            border-bottom-color: #97ce4c;
-            border-left-color: #4cb5ce;
-            animation: portalSpin 1.5s linear infinite reverse;
-        }
-
-        .portal-spin::after {
-            top: 15px; left: 15px; right: 15px; bottom: 15px;
-            border: 6px solid transparent;
-            border-top-color: #4cb5ce;
-            animation: portalSpin 2s linear infinite;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 20, 0, 0.9);
+            border: 2px solid #00ff00;
+            padding: 15px;
+            font-size: 12px;
+            max-width: 350px;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
         }
         
-        @keyframes portalSpin { 
-            100% { transform: rotate(360deg); } 
-        }
-
-        .loading-text {
-            margin-top: 30px;
-            color: #97ce4c;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            letter-spacing: 3px;
-            text-shadow: 0 0 20px rgba(151, 206, 76, 0.8);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-
-        .scan-line {
-            width: 100%; height: 2px; 
-            background: linear-gradient(90deg, transparent, #97ce4c, transparent);
-            position: absolute; top: 0; left: 0;
-            animation: scan 2s linear infinite;
-            opacity: 0.6;
-            pointer-events: none;
-            box-shadow: 0 0 10px #97ce4c;
-        }
-        
-        @keyframes scan { 
-            0% { top: 0; opacity: 0; } 
-            50% { opacity: 1; } 
-            100% { top: 100%; opacity: 0; } 
-        }
-
         @media (max-width: 768px) {
-            #scanner-modal {
-                width: 90%;
-                right: 5%;
-            }
-            
-            h1 { font-size: 24px; }
-            
-            .legend { gap: 15px; }
-            
-            .hud-footer {
-                flex-direction: column;
-                gap: 15px;
+            #hud {
+                font-size: 10px;
+                max-width: 250px;
+                padding: 10px;
             }
         }
-
+        
+        @media (max-width: 480px) {
+            #hud {
+                font-size: 9px;
+                max-width: 180px;
+                padding: 8px;
+                top: 10px;
+                left: 10px;
+            }
+        }
+        
+        #hud h2 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        #dimension-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 50, 0, 0.5);
+            border-left: 3px solid #00ff00;
+        }
+        
+        .dimension-label {
+            color: #ffff00;
+            font-weight: bold;
+        }
+        
+        .status {
+            color: #00ff00;
+            animation: blink 1.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.5; }
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 20, 0, 0.9);
+            border: 2px solid #00ff00;
+            padding: 15px;
+            font-size: 11px;
+            z-index: 100;
+        }
+        
+        @media (max-width: 768px) {
+            #controls {
+                font-size: 9px;
+                padding: 10px;
+                bottom: 10px;
+                left: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #controls {
+                font-size: 8px;
+                padding: 8px;
+                max-width: 180px;
+            }
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 20, 0, 0.95);
+            border: 2px solid #00ffff;
+            padding: 10px;
+            font-size: 11px;
+            pointer-events: none;
+            display: none;
+            z-index: 200;
+            max-width: 300px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+        }
+        
+        .threat-level {
+            display: inline-block;
+            padding: 2px 6px;
+            margin-left: 5px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        
+        .threat-low { background: #00ff00; color: #000; }
+        .threat-medium { background: #ffff00; color: #000; }
+        .threat-high { background: #ff6600; color: #000; }
+        .threat-extreme { background: #ff0000; color: #fff; }
     </style>
 </head>
 <body>
-
-    <div id="loading-overlay">
-        <div class="portal-spin"></div>
-        <div class="loading-text">INITIATING PORTAL GUN...</div>
-    </div>
-
-    <div id="ui-container">
-        <div class="hud-header">
-            <h1>⚡ THE CENTRAL FINITE CURVE ⚡</h1>
-            <div class="subtitle">INTERDIMENSIONAL CARTOGRAPHY SYSTEM // DIMENSION C-137 PRIMARY NODE</div>
-        </div>
-
-        <div class="hud-footer">
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-icon" style="background: #3498db;"></div>
-                    <span>Planet</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-icon" style="background: #9b59b6;"></div>
-                    <span>Dimension</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-icon" style="background: #95a5a6;"></div>
-                    <span>Station</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-icon" style="background: #e74c3c;"></div>
-                    <span>Microverse</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-icon" style="background: #97ce4c;"></div>
-                    <span>Special</span>
-                </div>
-            </div>
-            <div class="controls-hint">
-                DRAG TO ROTATE • SCROLL TO ZOOM • CLICK TO SCAN
-            </div>
+    <div id="canvas-container"></div>
+    
+    <div id="hud">
+        <h2>INTERDIMENSIONAL CARTOGRAPHY</h2>
+        <div>Status: <span class="status">ONLINE</span></div>
+        <div>Portal Gun Charge: <span id="charge">100%</span></div>
+        <div>Dimensions Mapped: <span id="dim-count">0</span></div>
+        <div id="dimension-info">
+            <div class="dimension-label">Select a dimension to view details</div>
         </div>
     </div>
-
-    <div id="scanner-modal">
-        <div class="scan-line"></div>
-        <div class="modal-header">
-            <h2 id="info-name">Earth (C-137)</h2>
-            <span class="modal-type" id="info-type">Planet</span>
-        </div>
-        <div class="modal-body">
-            <div class="stat-row">
-                <span class="stat-label">Dimension</span>
-                <span class="stat-val" id="info-dim">C-137</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Population</span>
-                <span class="stat-val" id="info-pop">Unknown</span>
-            </div>
-            
-            <div class="description" id="info-desc">
-                Scanning location data...
-            </div>
-            
-            <div class="residents-box">
-                <div class="res-title">⚡ DETECTED LIFEFORMS</div>
-                <ul id="res-list">
-                    <li>Scanning...</li>
-                </ul>
-            </div>
-        </div>
+    
+    <div id="controls">
+        <strong>CONTROLS:</strong><br>
+        <strong>Desktop:</strong><br>
+        • Click & Drag: Rotate view<br>
+        • Mouse Wheel: Zoom<br>
+        • Click Dimension: View details<br>
+        • Space: Random portal<br>
+        <strong>Tablet/Touch:</strong><br>
+        • One Finger: Rotate view<br>
+        • Pinch: Zoom in/out<br>
+        • Tap Dimension: View details
     </div>
-
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x0a0a15, 0.004);
-
-        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 40, 80);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.8;
-        document.body.appendChild(renderer.domElement);
-
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.3;
-        controls.maxDistance = 300;
-        controls.minDistance = 20;
-
-        // Brighter Lighting
-        const ambientLight = new THREE.AmbientLight(0x606080, 3); 
-        scene.add(ambientLight);
-        
-        const sunLight = new THREE.PointLight(0xffffff, 5, 500);
-        sunLight.position.set(0, 80, 0);
-        scene.add(sunLight);
-
-        const portalLight = new THREE.PointLight(0x97ce4c, 6, 200);
-        portalLight.position.set(0, 0, 0);
-        scene.add(portalLight);
-
-        const blueAccent = new THREE.PointLight(0x4cb5ce, 4, 150);
-        blueAccent.position.set(-50, 20, 50);
-        scene.add(blueAccent);
-
-        const secondaryLight = new THREE.PointLight(0xffffff, 3, 300);
-        secondaryLight.position.set(50, -20, -50);
-        scene.add(secondaryLight);
-
-        // Enhanced Starfield with multiple layers
-        function createStarfield() {
-            const starsGroup = new THREE.Group();
-            
-            // Background stars
-            const bgGeometry = new THREE.BufferGeometry();
-            const bgCount = 8000;
-            const bgPositions = new Float32Array(bgCount * 3);
-            const bgColors = new Float32Array(bgCount * 3);
-
-            for(let i = 0; i < bgCount; i++) {
-                bgPositions[i*3] = (Math.random() - 0.5) * 1000;
-                bgPositions[i*3+1] = (Math.random() - 0.5) * 1000;
-                bgPositions[i*3+2] = (Math.random() - 0.5) * 1000;
-                
-                const colorType = Math.random();
-                if(colorType > 0.95) { 
-                    bgColors[i*3] = 0.59; bgColors[i*3+1] = 0.8; bgColors[i*3+2] = 0.3; // Green
-                } else if(colorType > 0.9) {
-                    bgColors[i*3] = 0.3; bgColors[i*3+1] = 0.7; bgColors[i*3+2] = 0.8; // Blue
-                } else {
-                    const brightness = 0.6 + Math.random() * 0.4;
-                    bgColors[i*3] = brightness; bgColors[i*3+1] = brightness; bgColors[i*3+2] = brightness + 0.1; 
-                }
-            }
-            
-            bgGeometry.setAttribute('position', new THREE.BufferAttribute(bgPositions, 3));
-            bgGeometry.setAttribute('color', new THREE.BufferAttribute(bgColors, 3));
-            
-            const bgMaterial = new THREE.PointsMaterial({ 
-                size: 0.6, 
-                vertexColors: true, 
-                transparent: true, 
-                opacity: 0.9,
-                sizeAttenuation: true
-            });
-            
-            const bgStars = new THREE.Points(bgGeometry, bgMaterial);
-            starsGroup.add(bgStars);
-
-            return starsGroup;
-        }
-        
-        scene.add(createStarfield());
-
-        // Citadel of Ricks - Redesigned to match the show
-        function createCitadel() {
-            const citadelGroup = new THREE.Group();
-            
-            const matGreen = new THREE.MeshStandardMaterial({ 
-                color: 0x97ce4c, 
-                emissive: 0x97ce4c,
-                emissiveIntensity: 0.5,
-                roughness: 0.2, 
-                metalness: 0.9 
-            });
-            
-            const matMetal = new THREE.MeshStandardMaterial({ 
-                color: 0x3a3a3a, 
-                roughness: 0.4, 
-                metalness: 0.95,
-                emissive: 0x1a1a1a,
-                emissiveIntensity: 0.2
-            });
-
-            const matMetalLight = new THREE.MeshStandardMaterial({ 
-                color: 0x5a5a5a, 
-                roughness: 0.3, 
-                metalness: 0.9 
-            });
-
-            const matWindow = new THREE.MeshPhysicalMaterial({
-                color: 0x4cb5ce,
-                transparent: true,
-                opacity: 0.6,
-                roughness: 0.1,
-                metalness: 0.3,
-                emissive: 0x4cb5ce,
-                emissiveIntensity: 0.4
-            });
-
-            // Central core sphere
-            const coreGeo = new THREE.SphereGeometry(6, 32, 32);
-            const core = new THREE.Mesh(coreGeo, matMetal);
-            citadelGroup.add(core);
-
-            // Main ring structure (the iconic citadel ring)
-            const mainRingOuter = new THREE.TorusGeometry(18, 2.5, 16, 48);
-            const mainRing = new THREE.Mesh(mainRingOuter, matMetal);
-            mainRing.rotation.x = Math.PI / 2;
-            citadelGroup.add(mainRing);
-
-            // Inner details of main ring
-            const ringDetail1 = new THREE.TorusGeometry(18, 1.8, 16, 48);
-            const detail1 = new THREE.Mesh(ringDetail1, matMetalLight);
-            detail1.rotation.x = Math.PI / 2;
-            detail1.position.y = 0.3;
-            citadelGroup.add(detail1);
-
-            // Secondary smaller ring above
-            const secondaryRing = new THREE.TorusGeometry(14, 1.5, 16, 48);
-            const secRing = new THREE.Mesh(secondaryRing, matMetal);
-            secRing.rotation.x = Math.PI / 2;
-            secRing.position.y = 5;
-            citadelGroup.add(secRing);
-
-            // Bottom ring
-            const bottomRing = new THREE.TorusGeometry(14, 1.5, 16, 48);
-            const botRing = new THREE.Mesh(bottomRing, matMetal);
-            botRing.rotation.x = Math.PI / 2;
-            botRing.position.y = -5;
-            citadelGroup.add(botRing);
-
-            // Connecting spokes from core to main ring
-            for(let i = 0; i < 12; i++) {
-                const angle = (i / 12) * Math.PI * 2;
-                const spokeGeo = new THREE.BoxGeometry(0.8, 0.8, 12);
-                const spoke = new THREE.Mesh(spokeGeo, matMetalLight);
-                
-                spoke.position.set(
-                    Math.cos(angle) * 12,
-                    0,
-                    Math.sin(angle) * 12
-                );
-                spoke.lookAt(0, 0, 0);
-                citadelGroup.add(spoke);
-
-                // Glowing windows on spokes
-                const windowGeo = new THREE.BoxGeometry(0.6, 0.3, 10);
-                const windowMesh = new THREE.Mesh(windowGeo, matWindow);
-                windowMesh.position.copy(spoke.position);
-                windowMesh.lookAt(0, 0, 0);
-                citadelGroup.add(windowMesh);
-            }
-
-            // Docking stations on the ring
-            for(let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                const dockGeo = new THREE.BoxGeometry(2, 3, 3);
-                const dock = new THREE.Mesh(dockGeo, matMetal);
-                
-                dock.position.set(
-                    Math.cos(angle) * 18,
-                    0,
-                    Math.sin(angle) * 18
-                );
-                
-                // Add glowing entrance
-                const entranceGeo = new THREE.BoxGeometry(1.5, 2, 0.5);
-                const entrance = new THREE.Mesh(entranceGeo, matGreen);
-                entrance.position.z = 1.5;
-                dock.add(entrance);
-                
-                citadelGroup.add(dock);
-            }
-
-            // Top antenna/spire structures
-            for(let i = 0; i < 6; i++) {
-                const angle = (i / 6) * Math.PI * 2;
-                const spireGeo = new THREE.CylinderGeometry(0.3, 0.5, 8, 8);
-                const spire = new THREE.Mesh(spireGeo, matMetalLight);
-                
-                spire.position.set(
-                    Math.cos(angle) * 8,
-                    8,
-                    Math.sin(angle) * 8
-                );
-                
-                // Glowing tip
-                const tipGeo = new THREE.SphereGeometry(0.6, 8, 8);
-                const tip = new THREE.Mesh(tipGeo, matGreen);
-                tip.position.y = 4.5;
-                spire.add(tip);
-                
-                citadelGroup.add(spire);
-            }
-
-            // Bottom disc/platform
-            const discGeo = new THREE.CylinderGeometry(16, 17, 1, 32);
-            const disc = new THREE.Mesh(discGeo, matMetal);
-            disc.position.y = -8;
-            citadelGroup.add(disc);
-
-            // Windows/lights around the core
-            for(let i = 0; i < 20; i++) {
-                const angle = (i / 20) * Math.PI * 2;
-                const height = (Math.random() - 0.5) * 8;
-                
-                const windowGeo = new THREE.BoxGeometry(0.8, 0.8, 0.3);
-                const window = new THREE.Mesh(windowGeo, matWindow);
-                
-                window.position.set(
-                    Math.cos(angle) * 6.2,
-                    height,
-                    Math.sin(angle) * 6.2
-                );
-                window.lookAt(0, height, 0);
-                
-                citadelGroup.add(window);
-            }
-
-            // Portal/Energy sphere in center
-            const portalGeo = new THREE.SphereGeometry(3, 32, 32);
-            const portalMat = new THREE.MeshBasicMaterial({
-                color: 0x97ce4c,
-                transparent: true,
-                opacity: 0.3,
-                side: THREE.BackSide
-            });
-            const portal = new THREE.Mesh(portalGeo, portalMat);
-            citadelGroup.add(portal);
-
-            // Outer glow rings
-            for(let i = 0; i < 3; i++) {
-                const glowRingGeo = new THREE.TorusGeometry(20 + i * 2, 0.2, 8, 32);
-                const glowRing = new THREE.Mesh(glowRingGeo, matGreen);
-                glowRing.rotation.x = Math.PI / 2;
-                glowRing.position.y = (i - 1) * 2;
-                citadelGroup.add(glowRing);
-            }
-
-            const userData = {
-                name: "The Citadel of Ricks",
-                type: "Space Station",
-                dimension: "Trans-Dimensional",
-                residents: [], 
-                isCitadel: true,
-                description: "The seat of Rick government, where thousands of Ricks and Mortys from across dimensions live. Featured prominently in Season 3, Episode 7 where Evil Morty was elected president."
-            };
-            
-            citadelGroup.children.forEach(child => {
-                child.userData = userData;
-            });
-
-            citadelGroup.position.set(0, 0, 0);
-            citadelGroup.scale.set(1.2, 1.2, 1.2);
-            return citadelGroup;
-        }
-
-        const citadel = createCitadel();
-        scene.add(citadel);
-
-        const interactables = [];
-        interactables.push(...citadel.children);
-
-        // Lore-accurate custom locations with show role descriptions
-        const customLocations = [
+    
+    <div id="tooltip" class="tooltip"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Lore-accurate Rick and Morty dimensions
+        const dimensions = [
             {
-                name: "Anatomy Park",
-                type: "Microverse",
-                dimension: "C-137",
-                color: 0xe74c3c,
-                shape: "microverse",
-                scale: 1.5,
-                description: "Where Rick miniaturized Morty and sent him inside a homeless man to save a theme park (Season 1, Episode 3). Features attractions like Pirates of the Pancreas.",
-                position: { x: 25, y: 5, z: 15 }
+                name: "C-137",
+                designation: "C-137",
+                description: "Rick's original dimension. Currently abandoned after Cronenberg incident.",
+                threat: "extreme",
+                color: 0xff0000,
+                position: [0, 0, 0],
+                size: 1.2,
+                features: ["Cronenberged", "Abandoned", "Original Rick"]
             },
             {
-                name: "Cronenberg World",
-                type: "Planet",
-                dimension: "Cronenberg",
-                color: 0x8B4513,
-                shape: "planet",
-                scale: 1.8,
-                description: "Rick's original home dimension before the love potion disaster. Rick and Morty abandoned it, leaving behind Cronenberg versions of Jerry, Beth, and Summer (Season 1, Episode 6).",
-                position: { x: -30, y: -10, z: 20 }
+                name: "Replacement Dimension",
+                designation: "Unknown",
+                description: "Current home dimension of Rick C-137 and Morty after dimension hop.",
+                threat: "medium",
+                color: 0x00ff00,
+                position: [3, 1, 2],
+                size: 1.0,
+                features: ["Current Home", "Dead Rick & Morty Buried"]
             },
             {
-                name: "Blips and Chitz",
-                type: "Space Station",
-                dimension: "C-137",
-                color: 0xf1c40f,
-                shape: "station",
-                scale: 1.3,
-                description: "An intergalactic arcade where Morty played Roy: A Life Well Lived and Rick went 'off the grid' (Season 2, Episode 2). Morty got addicted to the games here.",
-                position: { x: 40, y: 15, z: -10 }
+                name: "Citadel Dimension",
+                designation: "Citadel",
+                description: "Home to the Citadel of Ricks. Governmental center of the multiverse.",
+                threat: "high",
+                color: 0xffaa00,
+                position: [-4, 2, -1],
+                size: 1.5,
+                features: ["Political Center", "Corrupted", "Simple Rick's"]
             },
             {
-                name: "Gazorpazorp",
-                type: "Planet",
-                dimension: "C-137",
-                color: 0xe84393,
-                shape: "planet",
-                scale: 1.6,
-                description: "Where Morty bought a sex robot and accidentally had a rapidly-aging son, Morty Jr. Ruled by giant Amazonian women (Season 1, Episode 7).",
-                position: { x: -20, y: 8, z: -35 }
+                name: "Dimension J19ζ7",
+                designation: "J19ζ7",
+                description: "Doofus Rick's dimension. Technology developed without weapons.",
+                threat: "low",
+                color: 0x00aaff,
+                position: [2, -3, 4],
+                size: 0.9,
+                features: ["Peaceful", "Doofus Rick", "Ovenless Brownies"]
             },
             {
-                name: "Purge Planet",
-                type: "Planet",
-                dimension: "unknown",
-                color: 0xa00000,
-                shape: "planet",
-                scale: 1.5,
-                description: "A planet with an annual purge festival where Rick and Morty helped a rebellion. Rick went on a murder spree here (Season 2, Episode 9).",
-                position: { x: 15, y: -15, z: -40 }
+                name: "Dimension 35-C",
+                designation: "35-C",
+                description: "The dimension where Pizza is a phone topping and phones are eaten.",
+                threat: "low",
+                color: 0xff00ff,
+                position: [-3, -2, 3],
+                size: 0.8,
+                features: ["Pizza Phones", "Harmless Oddity"]
             },
             {
-                name: "Froopyland",
-                type: "Dimension",
-                dimension: "Froop",
-                color: 0xff69b4,
-                shape: "dimension",
-                scale: 1.4,
-                description: "Rick's fantasy world created for young Beth. Tommy was trapped here and created a disturbing civilization of inbred offspring (Season 3, Episode 9).",
-                position: { x: -40, y: 12, z: 5 }
+                name: "Dimension C-500A",
+                designation: "C-500A",
+                description: "Dimension where chairs are people and people are chairs.",
+                threat: "medium",
+                color: 0xffff00,
+                position: [5, 0, -3],
+                size: 0.85,
+                features: ["Chair People", "Existential Crisis Inducing"]
             },
             {
-                name: "Unity's World",
-                type: "Planet",
-                dimension: "C-137",
-                color: 0x9b59b6,
-                shape: "planet",
-                scale: 1.7,
-                description: "Home planet of Unity, the hive-mind entity and Rick's ex-girlfriend. Their reunion nearly led to Rick's suicide (Season 2, Episode 3).",
-                position: { x: 35, y: -8, z: 30 }
+                name: "Fascist Dimension",
+                designation: "Unknown",
+                description: "Dimension controlled by fascist Morty. High military presence.",
+                threat: "extreme",
+                color: 0x880000,
+                position: [-5, -1, -4],
+                size: 1.1,
+                features: ["Fascist Morty", "Militarized", "Dangerous"]
             },
             {
-                name: "Pluto",
-                type: "Planet",
-                dimension: "C-137",
-                color: 0xb8860b,
-                shape: "planet",
-                scale: 1.2,
-                description: "Where Jerry was taken to be convinced that Pluto is a planet. He briefly became a celebrity among Plutonians before the truth came out (Season 1, Episode 9).",
-                position: { x: -15, y: 20, z: -15 }
-            },
-            {
-                name: "Gear World",
-                type: "Planet",
-                dimension: "Gear",
-                color: 0x708090,
-                shape: "planet",
-                scale: 1.3,
-                description: "Gearhead's home dimension where everything is mechanical. Featured at Rick's house party that got raided by the Federation (Season 2, Episode 10).",
-                position: { x: 28, y: -12, z: -25 }
+                name: "Dimension K-83",
+                designation: "K-83",
+                description: "Dimension with time-frozen entities and temporal anomalies.",
+                threat: "high",
+                color: 0x00ffff,
+                position: [4, 3, 1],
+                size: 0.95,
+                features: ["Time Anomalies", "Frozen Entities"]
             },
             {
                 name: "Hamster in Butt World",
-                type: "Dimension",
-                dimension: "HIB",
-                color: 0xffc0cb,
-                shape: "dimension",
-                scale: 1.1,
-                description: "A dimension where everyone has hamsters living in their butts. Rick briefly visited here, one of many bizarre realities (Season 1, Episode 10).",
-                position: { x: -32, y: -5, z: -20 }
+                designation: "Unknown",
+                description: "Dimension where humans have hamsters living in their rectums.",
+                threat: "low",
+                color: 0xaa6600,
+                position: [1, -4, -2],
+                size: 0.75,
+                features: ["Hamsters in Butts", "Weird but Harmless"]
             },
             {
-                name: "Testicle Monster Dimension",
-                type: "Dimension",
-                dimension: "TM",
-                color: 0xdda15e,
-                shape: "dimension",
-                scale: 1.2,
-                description: "An alternate dimension filled with testicle-shaped creatures. Rick hid here briefly during his multiverse adventures (Season 1, Episode 1).",
-                position: { x: 22, y: 18, z: 35 }
+                name: "Dimension D-99",
+                designation: "D-99",
+                description: "Dimension where Jerry is successful and confident.",
+                threat: "low",
+                color: 0xff6699,
+                position: [-2, 3, 5],
+                size: 0.8,
+                features: ["Successful Jerry", "Statistical Anomaly"]
             },
             {
-                name: "Bird World",
-                type: "Planet",
-                dimension: "C-137",
-                color: 0x00bfff,
-                shape: "planet",
-                scale: 1.5,
-                description: "Birdperson's homeworld, where his wedding to Tammy took place before she revealed herself as a Galactic Federation agent and killed him (Season 2, Episode 10).",
-                position: { x: 45, y: 3, z: -15 }
+                name: "Anatomy Park Dimension",
+                designation: "Unknown",
+                description: "Location of miniaturization technology. Disease research center.",
+                threat: "medium",
+                color: 0xff3300,
+                position: [3, 2, -4],
+                size: 0.9,
+                features: ["Miniaturization Tech", "Anatomy Park"]
+            },
+            {
+                name: "Blender Dimension",
+                designation: "5-126",
+                description: "Dimension consisting entirely of blended matter and screaming.",
+                threat: "extreme",
+                color: 0x990099,
+                position: [-4, -3, 2],
+                size: 1.0,
+                features: ["Everything Blended", "Constant Screaming", "DO NOT VISIT"]
+            },
+            {
+                name: "Interdimensional Customs",
+                designation: "Customs",
+                description: "Bureaucratic checkpoint between major dimensional clusters.",
+                threat: "medium",
+                color: 0x666666,
+                position: [0, 4, 0],
+                size: 1.3,
+                features: ["Bureaucracy", "Checkpoint", "Seeds Illegal"]
+            },
+            {
+                name: "Dimension C-132",
+                designation: "C-132",
+                description: "Dimension where Rick turned himself into a pickle.",
+                threat: "low",
+                color: 0x00ff66,
+                position: [2, 1, -5],
+                size: 0.85,
+                features: ["Pickle Rick Incident", "Rat Sewer Battle"]
+            },
+            {
+                name: "Froopyland",
+                designation: "Froopy",
+                description: "Pocket dimension created by Rick. Beth's imaginary land made real.",
+                threat: "high",
+                color: 0xff99ff,
+                position: [-1, -2, -3],
+                size: 0.7,
+                features: ["Pocket Dimension", "Cannibalistic Tommy", "Beth's Creation"]
+            },
+            {
+                name: "Galactic Federation HQ",
+                designation: "Fed-1",
+                description: "Former seat of Galactic Federation power. Now dissolved.",
+                threat: "low",
+                color: 0x0066ff,
+                position: [6, -2, 0],
+                size: 1.2,
+                features: ["Post-Collapse", "Former Federation", "Rick Destroyed"]
+            },
+            {
+                name: "Purge Planet",
+                designation: "Unknown",
+                description: "Planet with annual purge festival. Extreme violence.",
+                threat: "extreme",
+                color: 0xff0066,
+                position: [-6, 1, -2],
+                size: 0.95,
+                features: ["Annual Purge", "Lighthouse Incident", "Very Dangerous"]
+            },
+            {
+                name: "Gear World",
+                designation: "Gear",
+                description: "Dimension inhabited by sentient gears. Gearhead's home.",
+                threat: "low",
+                color: 0xcccccc,
+                position: [3, -1, 3],
+                size: 0.8,
+                features: ["Gear People", "Revolio Clockberg Jr.", "Mechanical"]
+            },
+            {
+                name: "Zigerion Homeworld",
+                designation: "Unknown",
+                description: "Scammer aliens attempting to steal Rick's portal formula.",
+                threat: "low",
+                color: 0xff6600,
+                position: [-3, 4, 1],
+                size: 0.75,
+                features: ["Zigerion Scammers", "Simulation Obsessed", "Nudity Culture"]
+            },
+            {
+                name: "Unity's Dimension",
+                designation: "Unknown",
+                description: "Dimension controlled by hivemind entity Unity.",
+                threat: "medium",
+                color: 0x9966ff,
+                position: [4, -4, -1],
+                size: 1.1,
+                features: ["Hivemind Unity", "Rick's Ex", "Total Assimilation"]
             },
             {
                 name: "Microverse Battery",
-                type: "Microverse",
-                dimension: "C-137",
-                color: 0xff4500,
-                shape: "microverse",
-                scale: 1.8,
-                description: "A miniature universe Rick created to power his car battery. Contains Zeep's miniverse and Kyle's teenyverse, each making smaller universes (Season 2, Episode 6).",
-                position: { x: -25, y: -18, z: 28 }
+                designation: "Microverse",
+                description: "Miniature universe inside Rick's car battery. Powers his ship.",
+                threat: "medium",
+                color: 0xff9900,
+                position: [-2, -4, 4],
+                size: 0.6,
+                features: ["Miniverse Inside", "Slave Labor", "Zigerion's Planet"]
             },
             {
-                name: "Glorzo Outpost",
-                type: "Space Station",
-                dimension: "unknown",
-                color: 0x4169e1,
-                shape: "station",
-                scale: 1.2,
-                description: "A space station where Rick bought alien pheromones that made Morty attractive. Led to Morty's bizarre alien offspring adventure (Season 4, Episode 7).",
-                position: { x: 18, y: 22, z: -30 }
+                name: "Dimension of Shrimp Colors",
+                designation: "Unknown",
+                description: "Dimension where mantis shrimp-like beings see more colors.",
+                threat: "low",
+                color: 0xff00aa,
+                position: [5, 4, 2],
+                size: 0.7,
+                features: ["16 Primary Colors", "Incomprehensible Hues"]
             },
             {
-                name: "Doofus Rick's Universe",
-                type: "Dimension",
-                dimension: "J19ζ7",
-                color: 0x87ceeb,
-                shape: "dimension",
-                scale: 1.3,
-                description: "Home of the kindest Rick who never had a daughter. He became Jerry's friend at the Citadel and invented ovenless brownies (Season 1, Episode 10).",
-                position: { x: -48, y: 8, z: -8 }
+                name: "Gazorpazorp",
+                designation: "Gazorp",
+                description: "Matriarchal society. Males are violent and primitive.",
+                threat: "high",
+                color: 0xff3399,
+                position: [-5, 3, -3],
+                size: 1.0,
+                features: ["Morty Jr.", "Matriarchy", "Sex Robot Origin"]
+            },
+            {
+                name: "Pluto",
+                designation: "Pluto",
+                description: "Mining colony. Believes it's still a planet.",
+                threat: "low",
+                color: 0x8888ff,
+                position: [6, 2, -4],
+                size: 0.9,
+                features: ["Plutonium Mining", "Planet Denial", "Scroopy Noopers"]
+            },
+            {
+                name: "Alphabetrium",
+                designation: "Alpha-7",
+                description: "Dimension where alphabet is different. Letters are alive.",
+                threat: "low",
+                color: 0xffaa55,
+                position: [-6, -2, 1],
+                size: 0.75,
+                features: ["Living Letters", "Linguistic Anomaly"]
+            },
+            {
+                name: "Cronenberg World",
+                designation: "Cron-1",
+                description: "Dimension overrun by Cronenberg monsters. Several exist.",
+                threat: "extreme",
+                color: 0x884444,
+                position: [0, -5, -4],
+                size: 1.1,
+                features: ["Failed Love Potion", "Body Horror", "Multiple Versions"]
+            },
+            {
+                name: "Bird World",
+                designation: "Bird-1",
+                description: "Birdperson's home dimension. Site of the wedding massacre.",
+                threat: "high",
+                color: 0x00aa88,
+                position: [7, 0, 3],
+                size: 1.0,
+                features: ["Phoenixperson", "Wedding Massacre", "Tammy's Betrayal"]
+            },
+            {
+                name: "Dimension of Giants",
+                designation: "Giant",
+                description: "Everything is giant-sized including people and objects.",
+                threat: "medium",
+                color: 0xaa88ff,
+                position: [-7, 1, 0],
+                size: 1.4,
+                features: ["Giant Everything", "Scale Anomaly"]
+            },
+            {
+                name: "Jerryboree",
+                designation: "Jerry-Care",
+                description: "Daycare facility for Jerrys across infinite dimensions.",
+                threat: "low",
+                color: 0xffcc99,
+                position: [2, 5, -1],
+                size: 0.85,
+                features: ["Jerry Daycare", "Infinite Jerrys", "Safe Zone"]
+            },
+            {
+                name: "Testicle Monster Dimension",
+                designation: "Unknown",
+                description: "Dimension populated by aggressive testicle monsters.",
+                threat: "high",
+                color: 0xcc6699,
+                position: [-3, -5, -1],
+                size: 0.9,
+                features: ["Testicle Monsters", "Hostile", "Bizarre Biology"]
+            },
+            {
+                name: "Vindicators HQ",
+                designation: "Vindi-1",
+                description: "Home base of the Vindicators superhero team.",
+                threat: "medium",
+                color: 0x0099ff,
+                position: [4, -5, 3],
+                size: 1.0,
+                features: ["Superhero Team", "Drunk Rick's Revenge", "Million Ants"]
+            },
+            {
+                name: "Worldender's Dimension",
+                designation: "W-End",
+                description: "Former domain of Worldender before his defeat.",
+                threat: "low",
+                color: 0x666699,
+                position: [-4, 5, 2],
+                size: 0.8,
+                features: ["Post-Worldender", "Vindicators Mission", "Destroyed"]
+            },
+            {
+                name: "Morty's Mind Blowers",
+                designation: "Memory",
+                description: "Memory storage dimension. Contains erased Morty memories.",
+                threat: "medium",
+                color: 0xff66ff,
+                position: [5, -3, -5],
+                size: 0.7,
+                features: ["Memory Storage", "Truth Serum", "Squirrels"]
+            },
+            {
+                name: "Atlantis",
+                designation: "Atlant",
+                description: "Underwater dimension. Technologically advanced but petty.",
+                threat: "low",
+                color: 0x0066aa,
+                position: [-1, 5, 4],
+                size: 0.95,
+                features: ["Underwater City", "Mer-People", "Rick Hates It"]
+            },
+            {
+                name: "Interdimensional Cable Origin",
+                designation: "IC-Prime",
+                description: "Source dimension of interdimensional cable technology.",
+                threat: "low",
+                color: 0xaa00aa,
+                position: [3, 3, 5],
+                size: 0.75,
+                features: ["Infinite TV", "Ball Fondlers", "Jan Quadrant Vincent"]
+            },
+            {
+                name: "Death Crystal Dimension",
+                designation: "D-Cry",
+                description: "Source of death crystals. Shows infinite death possibilities.",
+                threat: "high",
+                color: 0xff0099,
+                position: [-5, -4, 5],
+                size: 0.85,
+                features: ["Death Crystals", "Akira Slide", "Holographic Projection"]
+            },
+            {
+                name: "Story Train",
+                designation: "Story",
+                description: "Narrative-driven dimension with literal story structure.",
+                threat: "medium",
+                color: 0x9999ff,
+                position: [6, -4, -2],
+                size: 0.9,
+                features: ["Meta-Narrative", "Story Lord", "Anthology"]
+            },
+            {
+                name: "Vat of Acid",
+                designation: "Acid",
+                description: "Location of the famous fake vat of acid.",
+                threat: "low",
+                color: 0x99ff00,
+                position: [-6, 4, -4],
+                size: 0.75,
+                features: ["Fake Acid", "Save Points", "Morty's Girlfriends"]
+            },
+            {
+                name: "Heist-Con",
+                designation: "Heist",
+                description: "Dimension devoted to heist culture and conventions.",
+                threat: "low",
+                color: 0xff6633,
+                position: [7, 3, -1],
+                size: 0.8,
+                features: ["Heist Culture", "Mr. Poopybutthole", "Randotron"]
+            },
+            {
+                name: "Planet Squanch",
+                designation: "Squanch",
+                description: "Squanchy's home planet. Heavy partying culture.",
+                threat: "low",
+                color: 0xff9966,
+                position: [1, -6, 0],
+                size: 0.85,
+                features: ["Squanchy's Home", "Party Planet", "Squanch Language"]
             }
         ];
-
-        // Enhanced shape creation with better models
-        function getShapeForType(type, color, scale = 1) {
-            let mesh;
+        
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x001a0d); // Dark green tint like the show
+        scene.fog = new THREE.Fog(0x001a0d, 15, 50);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 15;
+        camera.position.y = 5;
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // Lighting - cyan/green sci-fi lighting like the show
+        const ambientLight = new THREE.AmbientLight(0x003d29, 0.6);
+        scene.add(ambientLight);
+        
+        const mainLight = new THREE.PointLight(0x00ff00, 1.5, 100);
+        mainLight.position.set(10, 10, 10);
+        scene.add(mainLight);
+        
+        const accentLight = new THREE.PointLight(0x00ffff, 0.8, 80);
+        accentLight.position.set(-10, -10, 10);
+        scene.add(accentLight);
+        
+        const backLight = new THREE.PointLight(0x0088ff, 0.5, 60);
+        backLight.position.set(0, 5, -15);
+        scene.add(backLight);
+        
+        // Create starfield with Rick and Morty style colors
+        const starGeometry = new THREE.BufferGeometry();
+        const starVertices = [];
+        const starColors = [];
+        for (let i = 0; i < 3000; i++) {
+            const x = (Math.random() - 0.5) * 200;
+            const y = (Math.random() - 0.5) * 200;
+            const z = (Math.random() - 0.5) * 200;
+            starVertices.push(x, y, z);
             
-            if (type === "station") {
-                // Octahedron station with glowing core
-                const geo = new THREE.OctahedronGeometry(1.5 * scale, 1);
-                const mat = new THREE.MeshStandardMaterial({ 
-                    color: 0xaaaaaa, 
-                    roughness: 0.3, 
-                    metalness: 0.9,
-                    emissive: color,
-                    emissiveIntensity: 0.2
+            // Mix of white, cyan, and green stars
+            const colorChoice = Math.random();
+            if (colorChoice < 0.6) {
+                starColors.push(1, 1, 1); // white
+            } else if (colorChoice < 0.8) {
+                starColors.push(0, 1, 1); // cyan
+            } else {
+                starColors.push(0, 1, 0.5); // green-cyan
+            }
+        }
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
+        const starMaterial = new THREE.PointsMaterial({ 
+            size: 0.15,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8
+        });
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+        
+        // Create dimension portals with Rick and Morty style
+        const dimensionObjects = [];
+        const portalLines = [];
+        const portalRings = [];
+        
+        dimensions.forEach((dim, index) => {
+            const group = new THREE.Group();
+            group.position.set(...dim.position);
+            group.userData = dim;
+            
+            // Create portal ring (the iconic green portal)
+            const ringGeometry = new THREE.TorusGeometry(dim.size, dim.size * 0.15, 16, 32);
+            const ringMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 0.8
+            });
+            const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            ring.rotation.x = Math.PI / 2;
+            group.add(ring);
+            
+            // Inner portal glow (the liquid-like portal center)
+            const portalGeometry = new THREE.CircleGeometry(dim.size * 0.95, 32);
+            const portalMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            const portal = new THREE.Mesh(portalGeometry, portalMaterial);
+            portal.rotation.x = Math.PI / 2;
+            group.add(portal);
+            
+            // Dimension indicator sphere (floating in portal)
+            const sphereGeometry = new THREE.SphereGeometry(dim.size * 0.4, 16, 16);
+            const sphereMaterial = new THREE.MeshToonMaterial({
+                color: dim.color,
+                emissive: dim.color,
+                emissiveIntensity: 0.5
+            });
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.z = 0.3;
+            group.add(sphere);
+            
+            // Outline for toon effect
+            const outlineGeometry = new THREE.SphereGeometry(dim.size * 0.42, 16, 16);
+            const outlineMaterial = new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                side: THREE.BackSide
+            });
+            const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+            outline.position.z = 0.3;
+            group.add(outline);
+            
+            // Portal particles/drips
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const particleGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+                const particleMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ff00,
+                    transparent: true,
+                    opacity: 0.8
                 });
-                mesh = new THREE.Mesh(geo, mat);
-                
-                // Add glowing core
-                const coreGeo = new THREE.SphereGeometry(0.5 * scale, 8, 8);
-                const coreMat = new THREE.MeshBasicMaterial({ color: color });
-                const core = new THREE.Mesh(coreGeo, coreMat);
-                mesh.add(core);
-            } 
-            else if (type === "microverse") {
-                // Icosahedron with energy field
-                const geo = new THREE.IcosahedronGeometry(1.3 * scale, 1);
-                const mat = new THREE.MeshStandardMaterial({ 
-                    color: color,
-                    wireframe: false,
-                    roughness: 0.4,
-                    metalness: 0.6,
-                    emissive: color,
-                    emissiveIntensity: 0.3
-                });
-                mesh = new THREE.Mesh(geo, mat);
-                
-                // Add wireframe overlay
-                const wireGeo = new THREE.IcosahedronGeometry(1.4 * scale, 1);
-                const wireMat = new THREE.MeshBasicMaterial({ 
-                    color: color, 
-                    wireframe: true,
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                const radius = dim.size * 1.1;
+                particle.position.x = Math.cos(angle) * radius;
+                particle.position.y = Math.sin(angle) * radius;
+                particle.position.z = (Math.random() - 0.5) * 0.3;
+                particle.userData = { 
+                    angle: angle, 
+                    radius: radius,
+                    speed: 0.02 + Math.random() * 0.03,
+                    offset: Math.random() * Math.PI * 2
+                };
+                group.add(particle);
+                portalRings.push(particle);
+            }
+            
+            // Sci-fi tech rings around portal
+            for (let i = 0; i < 3; i++) {
+                const techRingGeometry = new THREE.TorusGeometry(
+                    dim.size * (1.3 + i * 0.15), 
+                    0.02, 
+                    8, 
+                    24
+                );
+                const techRingMaterial = new THREE.MeshBasicMaterial({
+                    color: dim.threat === 'extreme' ? 0xff0000 : 0x00ffff,
                     transparent: true,
                     opacity: 0.4
                 });
-                const wire = new THREE.Mesh(wireGeo, wireMat);
-                mesh.add(wire);
-            }
-            else if (type === "dimension") {
-                // Dodecahedron for alternate dimensions
-                const geo = new THREE.DodecahedronGeometry(1.4 * scale, 0);
-                const mat = new THREE.MeshStandardMaterial({ 
-                    color: color, 
-                    roughness: 0.7, 
-                    metalness: 0.3,
-                    emissive: color,
-                    emissiveIntensity: 0.15
-                });
-                mesh = new THREE.Mesh(geo, mat);
-            }
-            else {
-                // Enhanced planet with atmosphere
-                const geo = new THREE.SphereGeometry(1.4 * scale, 24, 24);
-                const mat = new THREE.MeshStandardMaterial({ 
-                    color: color, 
-                    roughness: 0.8, 
-                    metalness: 0.2
-                });
-                mesh = new THREE.Mesh(geo, mat);
-                
-                // Add atmosphere glow
-                const glowGeo = new THREE.SphereGeometry(1.55 * scale, 24, 24);
-                const glowMat = new THREE.MeshBasicMaterial({ 
-                    color: color,
-                    transparent: true,
-                    opacity: 0.15,
-                    side: THREE.BackSide
-                });
-                const glow = new THREE.Mesh(glowGeo, glowMat);
-                mesh.add(glow);
+                const techRing = new THREE.Mesh(techRingGeometry, techRingMaterial);
+                techRing.rotation.x = Math.PI / 2;
+                techRing.userData = { 
+                    rotationSpeed: 0.001 * (i + 1) * (i % 2 === 0 ? 1 : -1)
+                };
+                group.add(techRing);
+                portalRings.push(techRing);
             }
             
-            return mesh;
-        }
-
-        // Add custom locations
-        customLocations.forEach(loc => {
-            const obj = getShapeForType(loc.shape, loc.color, loc.scale);
-            obj.position.set(loc.position.x, loc.position.y, loc.position.z);
+            scene.add(group);
+            dimensionObjects.push(group);
             
-            obj.userData = {
-                name: loc.name,
-                type: loc.type,
-                dimension: loc.dimension,
-                residents: [],
-                description: loc.description
-            };
-
-            scene.add(obj);
-            interactables.push(obj);
+            // Add label with Rick and Morty font style
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            
+            // Background
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Border
+            context.strokeStyle = '#00ff00';
+            context.lineWidth = 4;
+            context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+            
+            // Text
+            context.fillStyle = '#00ff00';
+            context.font = 'Bold 36px Arial';
+            context.textAlign = 'center';
+            context.fillText(dim.designation, 256, 50);
+            
+            context.fillStyle = dim.threat === 'extreme' ? '#ff0000' : 
+                               dim.threat === 'high' ? '#ff6600' :
+                               dim.threat === 'medium' ? '#ffff00' : '#00ff00';
+            context.font = 'Bold 24px Arial';
+            context.fillText(`[${dim.threat.toUpperCase()}]`, 256, 85);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: texture, 
+                transparent: true 
+            });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(4, 1, 1);
+            sprite.position.y = dim.size + 1.5;
+            group.add(sprite);
         });
-
-        // Fetch API locations and integrate them
-        async function fetchUniverse() {
-            try {
-                const page1 = fetch('https://rickandmortyapi.com/api/location?page=1').then(r => r.json());
-                const page2 = fetch('https://rickandmortyapi.com/api/location?page=2').then(r => r.json());
-                const page3 = fetch('https://rickandmortyapi.com/api/location?page=3').then(r => r.json());
-                const page4 = fetch('https://rickandmortyapi.com/api/location?page=4').then(r => r.json());
-
-                const results = await Promise.all([page1, page2, page3, page4]);
-                const locations = [...results[0].results, ...results[1].results, ...results[2].results, ...results[3].results];
-
-                document.getElementById('loading-overlay').style.opacity = 0;
-                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 1000);
-
-                let angle = 0;
-                let layer = 0;
-                let itemsInLayer = 0;
-                const itemsPerLayer = 12;
-
-                locations.forEach((loc, index) => {
-                    if (loc.name.includes("Citadel")) return; 
-
-                    // Skip if we already have this as a custom location
-                    if (customLocations.some(custom => custom.name === loc.name)) return;
-
-                    let colorHex, shapeType;
-                    switch(loc.type) {
-                        case 'Planet': 
-                            colorHex = 0x3498db; 
-                            shapeType = 'planet';
-                            break;
-                        case 'Cluster': 
-                            colorHex = 0x9b59b6; 
-                            shapeType = 'dimension';
-                            break;
-                        case 'Space Station': 
-                            colorHex = 0x95a5a6; 
-                            shapeType = 'station';
-                            break;
-                        case 'Microverse': 
-                            colorHex = 0xe74c3c; 
-                            shapeType = 'microverse';
-                            break;
-                        case 'TV': 
-                            colorHex = 0xf1c40f;
-                            shapeType = 'dimension';
-                            break; 
-                        default: 
-                            colorHex = 0x2ecc71;
-                            shapeType = 'planet';
-                    }
-
-                    const obj = getShapeForType(shapeType, colorHex);
-
-                    // Spiral positioning
-                    if (itemsInLayer >= itemsPerLayer) {
-                        layer++;
-                        itemsInLayer = 0;
-                    }
-
-                    const radius = 50 + layer * 15;
-                    angle += (Math.PI * 2) / itemsPerLayer;
-                    
-                    const x = Math.cos(angle) * radius + (Math.random() - 0.5) * 8;
-                    const z = Math.sin(angle) * radius + (Math.random() - 0.5) * 8;
-                    const y = (Math.random() - 0.5) * (radius * 0.4);
-
-                    obj.position.set(x, y, z);
-                    
-                    obj.userData = {
-                        name: loc.name,
-                        type: loc.type,
-                        dimension: loc.dimension,
-                        residents: loc.residents,
-                        description: `Featured in Rick and Morty. A ${loc.type.toLowerCase()} location in ${loc.dimension}.`
-                    };
-
-                    scene.add(obj);
-                    interactables.push(obj);
-                    
-                    itemsInLayer++;
+        
+        // Create portal connections (animated green energy beams like portal gun)
+        const connections = [
+            [0, 1], // C-137 to Replacement
+            [1, 2], // Replacement to Citadel
+            [2, 12], // Citadel to Customs
+            [0, 6], // C-137 to Fascist
+            [1, 13], // Replacement to Pickle dimension
+            [2, 3], // Citadel to Doofus Rick
+            [15, 2], // Galactic Fed to Citadel
+            [19, 1], // Unity to Replacement
+            [2, 28], // Citadel to Jerryboree
+            [20, 1], // Microverse to Replacement
+            [22, 2], // Gazorpazorp to Citadel
+            [14, 1], // Froopyland to Replacement
+            [26, 19], // Bird World to Unity
+            [30, 2], // Vindicators to Citadel
+            [0, 25], // C-137 to Cronenberg World
+            [21, 3], // Shrimp Colors to Doofus Rick
+            [35, 10], // Death Crystal to Anatomy Park
+            [12, 15], // Customs to Galactic Fed
+            [23, 15], // Pluto to Galactic Fed
+            [27, 6], // Giants to Fascist
+            [33, 1], // Atlantis to Replacement
+            [34, 2], // Interdimensional Cable to Citadel
+            [36, 1], // Story Train to Replacement
+            [38, 2], // Heist-Con to Citadel
+            [39, 19], // Planet Squanch to Unity
+        ];
+        
+        connections.forEach(([i, j]) => {
+            const start = dimensionObjects[i].position;
+            const end = dimensionObjects[j].position;
+            
+            // Main beam
+            const points = [start, end];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 0.6,
+                linewidth: 2
+            });
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            portalLines.push(line);
+            
+            // Energy particles along the beam
+            for (let k = 0; k < 5; k++) {
+                const t = k / 5;
+                const particlePos = new THREE.Vector3(
+                    start.x + (end.x - start.x) * t,
+                    start.y + (end.y - start.y) * t,
+                    start.z + (end.z - start.z) * t
+                );
+                
+                const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+                const particleMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ff00,
+                    transparent: true,
+                    opacity: 0.8
                 });
-
-            } catch (err) {
-                console.error("API Error", err);
-                document.getElementById('loading-overlay').style.opacity = 0;
-                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 1000);
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                particle.position.copy(particlePos);
+                particle.userData = {
+                    startPos: start,
+                    endPos: end,
+                    progress: t,
+                    speed: 0.01 + Math.random() * 0.01
+                };
+                scene.add(particle);
+                portalRings.push(particle);
             }
-        }
-
-        fetchUniverse();
-
+        });
+        
+        // Mouse and Touch interaction
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-        let selectedObject = null;
-
-        window.addEventListener('click', (event) => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(interactables, true);
-
-            if (intersects.length > 0) {
-                const target = intersects[0].object;
-                const userData = target.userData.name ? target.userData : target.parent.userData;
+        const tooltip = document.getElementById('tooltip');
+        const dimensionInfo = document.getElementById('dimension-info');
+        
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let selectedDimension = null;
+        
+        // Touch controls for tablets
+        let touchStartDistance = 0;
+        let initialCameraZ = camera.position.z;
+        let isTouching = false;
+        
+        // Mouse events
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+        
+        renderer.domElement.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        
+        renderer.domElement.addEventListener('mousemove', handleMove);
+        
+        // Touch events for tablets
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isTouching = true;
+            
+            if (e.touches.length === 1) {
+                // Single touch - rotation
+                previousMousePosition = { 
+                    x: e.touches[0].clientX, 
+                    y: e.touches[0].clientY 
+                };
+            } else if (e.touches.length === 2) {
+                // Two finger pinch - zoom
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+                initialCameraZ = camera.position.z;
+            }
+        }, { passive: false });
+        
+        renderer.domElement.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            
+            if (e.touches.length === 1) {
+                // Single touch - rotate
+                const deltaX = e.touches[0].clientX - previousMousePosition.x;
+                const deltaY = e.touches[0].clientY - previousMousePosition.y;
                 
-                if(selectedObject && selectedObject !== target && !selectedObject.userData.isCitadel) {
-                    if(selectedObject.material && selectedObject.material.emissive) {
-                        selectedObject.material.emissive.setHex(0x000000);
+                camera.position.x += deltaX * 0.02;
+                camera.position.y -= deltaY * 0.02;
+                
+                camera.lookAt(scene.position);
+                
+                previousMousePosition = { 
+                    x: e.touches[0].clientX, 
+                    y: e.touches[0].clientY 
+                };
+            } else if (e.touches.length === 2) {
+                // Two finger pinch - zoom
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                const scale = touchStartDistance / distance;
+                camera.position.z = initialCameraZ * scale;
+                camera.position.z = Math.max(5, Math.min(30, camera.position.z));
+            }
+        }, { passive: false });
+        
+        renderer.domElement.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) {
+                isTouching = false;
+                
+                // Check for tap on dimension
+                if (e.changedTouches.length === 1) {
+                    const touch = e.changedTouches[0];
+                    mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+                    
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(dimensionObjects);
+                    
+                    if (intersects.length > 0) {
+                        // Reset previous selection
+                        if (selectedDimension) {
+                            selectedDimension.children.forEach(child => {
+                                if (child.material && child.material.emissiveIntensity !== undefined) {
+                                    child.material.emissiveIntensity = 0.5;
+                                }
+                            });
+                        }
+                        
+                        selectedDimension = intersects[0].object.parent;
+                        selectedDimension.children.forEach(child => {
+                            if (child.material && child.material.emissiveIntensity !== undefined) {
+                                child.material.emissiveIntensity = 1.0;
+                            }
+                        });
+                        
+                        const dim = selectedDimension.userData;
+                        const threatClass = `threat-${dim.threat}`;
+                        
+                        dimensionInfo.innerHTML = `
+                            <div class="dimension-label">${dim.name}</div>
+                            <div><strong>Designation:</strong> ${dim.designation}</div>
+                            <div><strong>Threat Level:</strong> <span class="threat-level ${threatClass}">${dim.threat.toUpperCase()}</span></div>
+                            <div><strong>Description:</strong> ${dim.description}</div>
+                            <div><strong>Notable Features:</strong></div>
+                            <div style="margin-left: 10px;">
+                                ${dim.features.map(f => `• ${f}`).join('<br>')}
+                            </div>
+                        `;
                     }
                 }
-                
-                selectedObject = target;
-                if(!userData.isCitadel && target.material && target.material.emissive) {
-                    target.material.emissive.setHex(0x444444);
-                }
-                
-                updateUI(userData);
-                controls.autoRotate = false;
-            } else {
-                controls.autoRotate = true;
-                document.getElementById('scanner-modal').style.display = 'none';
             }
         });
-
-        async function updateUI(data) {
-            const modal = document.getElementById('scanner-modal');
-            const list = document.getElementById('res-list');
-            
-            modal.style.display = 'block';
-            document.getElementById('info-name').innerText = data.name;
-            document.getElementById('info-type').innerText = data.type;
-            document.getElementById('info-dim').innerText = data.dimension;
-            document.getElementById('info-desc').innerText = data.description || "No additional data available.";
-            document.getElementById('info-pop').innerText = data.residents.length > 0 ? data.residents.length + " Lifeforms" : "Uninhabited";
-
-            list.innerHTML = '<li>⚡ Accessing biometric database...</li>';
-
-            if (data.residents.length === 0) {
-                list.innerHTML = '<li>⚠ No lifeforms detected.</li>';
-                return;
+        
+        function handleMove(e) {
+            if (isDragging) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                camera.position.x += deltaX * 0.01;
+                camera.position.y -= deltaY * 0.01;
+                
+                camera.lookAt(scene.position);
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
             }
-
-            const residentUrls = data.residents.slice(0, 6);
-            try {
-                const fetches = residentUrls.map(url => fetch(url).then(res => res.json()));
-                const residents = await Promise.all(fetches);
+            
+            // Update mouse position for raycasting
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            // Check for hover (desktop only)
+            if (!isTouching) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(dimensionObjects, true);
                 
-                list.innerHTML = '';
-                residents.forEach(char => {
-                    const li = document.createElement('li');
-                    const statusIcon = char.status === 'Alive' ? '🟢' : char.status === 'Dead' ? '🔴' : '🟡';
-                    li.innerText = `${statusIcon} ${char.name} (${char.species})`;
-                    list.appendChild(li);
-                });
-                
-                if (data.residents.length > 6) {
-                    const more = document.createElement('li');
-                    more.style.fontStyle = 'italic';
-                    more.style.opacity = '0.7';
-                    more.innerText = `...and ${data.residents.length - 6} others`;
-                    list.appendChild(more);
+                if (intersects.length > 0) {
+                    const topObject = intersects[0].object;
+                    const group = topObject.parent.userData ? topObject.parent : topObject;
+                    const dim = group.userData || topObject.userData;
+                    
+                    if (dim && dim.name) {
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = e.clientX + 15 + 'px';
+                        tooltip.style.top = e.clientY + 15 + 'px';
+                        
+                        const threatClass = `threat-${dim.threat}`;
+                        tooltip.innerHTML = `
+                            <strong style="color: #00ffff;">${dim.name}</strong>
+                            <span class="threat-level ${threatClass}">${dim.threat.toUpperCase()}</span><br>
+                            <em>${dim.designation}</em><br>
+                            ${dim.description}
+                        `;
+                        
+                        // Highlight on hover
+                        if (topObject.material && topObject.material.emissiveIntensity !== undefined) {
+                            topObject.material.emissiveIntensity = 0.8;
+                        }
+                    }
+                } else {
+                    tooltip.style.display = 'none';
+                    dimensionObjects.forEach(group => {
+                        if (group !== selectedDimension) {
+                            group.children.forEach(child => {
+                                if (child.material && child.material.emissiveIntensity !== undefined) {
+                                    child.material.emissiveIntensity = 0.5;
+                                }
+                            });
+                        }
+                    });
                 }
-
-            } catch (e) {
-                list.innerHTML = '<li>⚠ Database Encryption Error.</li>';
             }
         }
-
-        // Animate objects
-        const animatedObjects = [];
-        scene.traverse((object) => {
-            if (object.isMesh && object !== citadel && object.parent !== citadel) {
-                animatedObjects.push({
-                    mesh: object,
-                    rotationSpeed: {
-                        x: (Math.random() - 0.5) * 0.01,
-                        y: (Math.random() - 0.5) * 0.01,
-                        z: (Math.random() - 0.5) * 0.01
-                    },
-                    bobSpeed: Math.random() * 0.5 + 0.5,
-                    bobAmount: Math.random() * 0.3 + 0.1,
-                    initialY: object.position.y
+        
+        renderer.domElement.addEventListener('click', (e) => {
+            // Skip if this was a touch event (already handled)
+            if (isTouching) return;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(dimensionObjects, true);
+            
+            if (intersects.length > 0) {
+                // Reset previous selection
+                if (selectedDimension) {
+                    selectedDimension.children.forEach(child => {
+                        if (child.material && child.material.emissiveIntensity !== undefined) {
+                            child.material.emissiveIntensity = 0.5;
+                        }
+                    });
+                }
+                
+                // Find the parent group
+                const topObject = intersects[0].object;
+                selectedDimension = topObject.parent.userData ? topObject.parent : topObject;
+                
+                // Highlight selection
+                selectedDimension.children.forEach(child => {
+                    if (child.material && child.material.emissiveIntensity !== undefined) {
+                        child.material.emissiveIntensity = 1.0;
+                    }
                 });
+                
+                const dim = selectedDimension.userData;
+                const threatClass = `threat-${dim.threat}`;
+                
+                dimensionInfo.innerHTML = `
+                    <div class="dimension-label">${dim.name}</div>
+                    <div><strong>Designation:</strong> ${dim.designation}</div>
+                    <div><strong>Threat Level:</strong> <span class="threat-level ${threatClass}">${dim.threat.toUpperCase()}</span></div>
+                    <div><strong>Description:</strong> ${dim.description}</div>
+                    <div><strong>Notable Features:</strong></div>
+                    <div style="margin-left: 10px;">
+                        ${dim.features.map(f => `• ${f}`).join('<br>')}
+                    </div>
+                `;
             }
         });
-
-        let time = 0;
-
+        
+        // Zoom with mouse wheel
+        renderer.domElement.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            camera.position.z += e.deltaY * 0.01;
+            camera.position.z = Math.max(5, Math.min(30, camera.position.z));
+        });
+        
+        // Random portal on spacebar - Rick's portal gun effect
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                const randomDim = dimensionObjects[Math.floor(Math.random() * dimensionObjects.length)];
+                
+                // Create portal opening effect
+                const portalFlash = new THREE.PointLight(0x00ff00, 5, 25);
+                portalFlash.position.copy(randomDim.position);
+                scene.add(portalFlash);
+                
+                // Create expanding portal ring
+                const flashRingGeometry = new THREE.TorusGeometry(0.5, 0.2, 16, 32);
+                const flashRingMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ff00,
+                    transparent: true,
+                    opacity: 1
+                });
+                const flashRing = new THREE.Mesh(flashRingGeometry, flashRingMaterial);
+                flashRing.position.copy(randomDim.position);
+                flashRing.rotation.x = Math.PI / 2;
+                scene.add(flashRing);
+                
+                // Create portal liquid splash particles
+                const splashParticles = [];
+                for (let i = 0; i < 20; i++) {
+                    const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+                    const particleMaterial = new THREE.MeshBasicMaterial({
+                        color: 0x00ff00,
+                        transparent: true,
+                        opacity: 1
+                    });
+                    const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                    particle.position.copy(randomDim.position);
+                    
+                    const angle = (i / 20) * Math.PI * 2;
+                    particle.userData = {
+                        velocity: new THREE.Vector3(
+                            Math.cos(angle) * 0.1,
+                            Math.sin(angle) * 0.1,
+                            (Math.random() - 0.5) * 0.1
+                        )
+                    };
+                    scene.add(particle);
+                    splashParticles.push(particle);
+                }
+                
+                // Animate portal opening
+                let frame = 0;
+                const portalAnimation = setInterval(() => {
+                    frame++;
+                    
+                    // Expand and fade ring
+                    const scale = 1 + frame * 0.3;
+                    flashRing.scale.set(scale, scale, scale);
+                    flashRing.material.opacity = 1 - (frame / 20);
+                    
+                    // Move and fade particles
+                    splashParticles.forEach(p => {
+                        p.position.add(p.userData.velocity);
+                        p.material.opacity = 1 - (frame / 20);
+                    });
+                    
+                    // Dim light
+                    portalFlash.intensity = 5 - (frame / 4);
+                    
+                    if (frame >= 20) {
+                        clearInterval(portalAnimation);
+                        scene.remove(portalFlash);
+                        scene.remove(flashRing);
+                        splashParticles.forEach(p => scene.remove(p));
+                    }
+                }, 30);
+                
+                // Update HUD
+                const charge = Math.floor(Math.random() * 40 + 60);
+                document.getElementById('charge').textContent = charge + '%';
+            }
+        });
+        
+        // Update dimension count
+        document.getElementById('dim-count').textContent = dimensions.length;
+        
+        // Animation loop
         function animate() {
             requestAnimationFrame(animate);
             
-            time += 0.01;
+            const time = Date.now() * 0.001;
             
-            // Rotate citadel
-            citadel.rotation.y += 0.001;
-            
-            // Animate other objects
-            animatedObjects.forEach((obj) => {
-                obj.mesh.rotation.x += obj.rotationSpeed.x;
-                obj.mesh.rotation.y += obj.rotationSpeed.y;
-                obj.mesh.rotation.z += obj.rotationSpeed.z;
+            // Animate dimension portals
+            dimensionObjects.forEach((group, i) => {
+                // Rotate the entire portal group
+                group.rotation.z += 0.01;
                 
-                // Floating effect
-                obj.mesh.position.y = obj.initialY + Math.sin(time * obj.bobSpeed) * obj.bobAmount;
+                // Get children for specific animations
+                group.children.forEach((child, j) => {
+                    // Animate portal ring
+                    if (child.geometry && child.geometry.type === 'TorusGeometry' && j === 0) {
+                        child.rotation.z += 0.02;
+                        const pulse = Math.sin(time * 2 + i) * 0.1 + 1;
+                        child.scale.set(pulse, pulse, 1);
+                    }
+                    
+                    // Animate inner portal liquid effect
+                    if (child.geometry && child.geometry.type === 'CircleGeometry') {
+                        child.material.opacity = 0.5 + Math.sin(time * 3 + i) * 0.2;
+                    }
+                    
+                    // Rotate dimension sphere
+                    if (child.geometry && child.geometry.type === 'SphereGeometry' && j === 2) {
+                        child.rotation.y += 0.02;
+                        child.rotation.x += 0.01;
+                    }
+                });
+                
+                // Extreme threat dimensions pulse dramatically
+                if (group.userData.threat === 'extreme') {
+                    const dramaticPulse = Math.sin(time * 4) * 0.15 + 1;
+                    group.scale.set(dramaticPulse, dramaticPulse, dramaticPulse);
+                }
             });
             
-            // Pulse portal light
-            portalLight.intensity = 4 + Math.sin(time * 2) * 0.5;
+            // Animate portal particles and tech rings
+            portalRings.forEach((obj, i) => {
+                if (obj.userData.angle !== undefined) {
+                    // Portal drip particles
+                    obj.userData.angle += obj.userData.speed;
+                    const wobble = Math.sin(time * 2 + obj.userData.offset) * 0.1;
+                    obj.position.x = Math.cos(obj.userData.angle) * (obj.userData.radius + wobble);
+                    obj.position.y = Math.sin(obj.userData.angle) * (obj.userData.radius + wobble);
+                    obj.position.z = Math.sin(time * 3 + i) * 0.3;
+                    
+                    // Pulse particle size
+                    const scale = 0.8 + Math.sin(time * 4 + i) * 0.3;
+                    obj.scale.set(scale, scale, scale);
+                } else if (obj.userData.rotationSpeed !== undefined) {
+                    // Tech rings rotation
+                    obj.rotation.z += obj.userData.rotationSpeed;
+                } else if (obj.userData.startPos !== undefined) {
+                    // Energy beam particles
+                    obj.userData.progress += obj.userData.speed;
+                    if (obj.userData.progress > 1) {
+                        obj.userData.progress = 0;
+                    }
+                    
+                    const t = obj.userData.progress;
+                    const start = obj.userData.startPos;
+                    const end = obj.userData.endPos;
+                    
+                    obj.position.x = start.x + (end.x - start.x) * t;
+                    obj.position.y = start.y + (end.y - start.y) * t;
+                    obj.position.z = start.z + (end.z - start.z) * t;
+                    
+                    // Pulse along the beam
+                    const pulseScale = Math.sin(t * Math.PI) * 0.5 + 0.5;
+                    obj.scale.set(pulseScale, pulseScale, pulseScale);
+                    obj.material.opacity = pulseScale;
+                }
+            });
             
-            controls.update();
+            // Animate portal connection lines
+            portalLines.forEach((line, i) => {
+                line.material.opacity = 0.4 + Math.sin(time * 2 + i) * 0.2;
+            });
+            
+            // Gentle camera movement
+            camera.position.x += Math.sin(time * 0.2) * 0.002;
+            camera.position.y += Math.cos(time * 0.15) * 0.002;
+            camera.lookAt(scene.position);
+            
+            // Rotate starfield slowly
+            stars.rotation.y += 0.0001;
+            stars.rotation.x += 0.00005;
+            
             renderer.render(scene, camera);
         }
-
+        
         animate();
-
+        
+        // Handle window resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -1182,4 +1270,3 @@
     </script>
 </body>
 </html>
-
