@@ -503,93 +503,180 @@
         
         scene.add(createStarfield());
 
-        // Enhanced Citadel with more detail
+        // Citadel of Ricks - Redesigned to match the show
         function createCitadel() {
             const citadelGroup = new THREE.Group();
             
             const matGreen = new THREE.MeshStandardMaterial({ 
                 color: 0x97ce4c, 
                 emissive: 0x97ce4c,
-                emissiveIntensity: 0.4,
-                roughness: 0.3, 
-                metalness: 0.8 
+                emissiveIntensity: 0.5,
+                roughness: 0.2, 
+                metalness: 0.9 
             });
             
-            const matDark = new THREE.MeshStandardMaterial({ 
-                color: 0x2a2a2a, 
-                roughness: 0.6, 
+            const matMetal = new THREE.MeshStandardMaterial({ 
+                color: 0x3a3a3a, 
+                roughness: 0.4, 
+                metalness: 0.95,
+                emissive: 0x1a1a1a,
+                emissiveIntensity: 0.2
+            });
+
+            const matMetalLight = new THREE.MeshStandardMaterial({ 
+                color: 0x5a5a5a, 
+                roughness: 0.3, 
                 metalness: 0.9 
             });
 
-            const matGlass = new THREE.MeshPhysicalMaterial({
-                color: 0x88ccff,
+            const matWindow = new THREE.MeshPhysicalMaterial({
+                color: 0x4cb5ce,
                 transparent: true,
-                opacity: 0.3,
+                opacity: 0.6,
                 roughness: 0.1,
-                metalness: 0.1,
-                transmission: 0.9,
-                thickness: 0.5
+                metalness: 0.3,
+                emissive: 0x4cb5ce,
+                emissiveIntensity: 0.4
             });
 
-            // Main central tower (taller and more detailed)
-            const towerGeo = new THREE.CylinderGeometry(3, 4, 30, 8);
-            const tower = new THREE.Mesh(towerGeo, matDark);
-            tower.position.y = 0;
-            citadelGroup.add(tower);
+            // Central core sphere
+            const coreGeo = new THREE.SphereGeometry(6, 32, 32);
+            const core = new THREE.Mesh(coreGeo, matMetal);
+            citadelGroup.add(core);
 
-            // Top dome (more prominent)
-            const domeGeo = new THREE.SphereGeometry(5, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
-            const dome = new THREE.Mesh(domeGeo, matGlass);
-            dome.position.y = 15;
-            citadelGroup.add(dome);
+            // Main ring structure (the iconic citadel ring)
+            const mainRingOuter = new THREE.TorusGeometry(18, 2.5, 16, 48);
+            const mainRing = new THREE.Mesh(mainRingOuter, matMetal);
+            mainRing.rotation.x = Math.PI / 2;
+            citadelGroup.add(mainRing);
 
-            // Glowing top sphere
-            const topSphereGeo = new THREE.SphereGeometry(2, 16, 16);
-            const topSphere = new THREE.Mesh(topSphereGeo, matGreen);
-            topSphere.position.y = 18;
-            citadelGroup.add(topSphere);
+            // Inner details of main ring
+            const ringDetail1 = new THREE.TorusGeometry(18, 1.8, 16, 48);
+            const detail1 = new THREE.Mesh(ringDetail1, matMetalLight);
+            detail1.rotation.x = Math.PI / 2;
+            detail1.position.y = 0.3;
+            citadelGroup.add(detail1);
 
-            // Multiple rings at different heights
-            for(let i = 0; i < 3; i++) {
-                const ringGeo = new THREE.TorusGeometry(8 + i * 2, 0.4, 16, 32);
-                const ring = new THREE.Mesh(ringGeo, matGreen);
-                ring.rotation.x = Math.PI / 2;
-                ring.position.y = -5 - i * 8;
-                citadelGroup.add(ring);
-            }
+            // Secondary smaller ring above
+            const secondaryRing = new THREE.TorusGeometry(14, 1.5, 16, 48);
+            const secRing = new THREE.Mesh(secondaryRing, matMetal);
+            secRing.rotation.x = Math.PI / 2;
+            secRing.position.y = 5;
+            citadelGroup.add(secRing);
 
-            // Satellites around the citadel (more of them)
-            for(let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                const distance = 15;
+            // Bottom ring
+            const bottomRing = new THREE.TorusGeometry(14, 1.5, 16, 48);
+            const botRing = new THREE.Mesh(bottomRing, matMetal);
+            botRing.rotation.x = Math.PI / 2;
+            botRing.position.y = -5;
+            citadelGroup.add(botRing);
+
+            // Connecting spokes from core to main ring
+            for(let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const spokeGeo = new THREE.BoxGeometry(0.8, 0.8, 12);
+                const spoke = new THREE.Mesh(spokeGeo, matMetalLight);
                 
-                const satelliteGeo = new THREE.CylinderGeometry(0.8, 0.8, 5, 6);
-                const satellite = new THREE.Mesh(satelliteGeo, matDark);
-                satellite.position.set(
-                    Math.cos(angle) * distance, 
-                    -8, 
-                    Math.sin(angle) * distance
-                );
-                
-                const glowGeo = new THREE.SphereGeometry(0.5, 8, 8);
-                const glow = new THREE.Mesh(glowGeo, matGreen);
-                glow.position.y = 3;
-                satellite.add(glow);
-                
-                citadelGroup.add(satellite);
-            }
-
-            // Landing platforms
-            for(let i = 0; i < 4; i++) {
-                const angle = (i / 4) * Math.PI * 2 + Math.PI/4;
-                const platformGeo = new THREE.BoxGeometry(4, 0.5, 4);
-                const platform = new THREE.Mesh(platformGeo, matDark);
-                platform.position.set(
+                spoke.position.set(
                     Math.cos(angle) * 12,
-                    -15,
+                    0,
                     Math.sin(angle) * 12
                 );
-                citadelGroup.add(platform);
+                spoke.lookAt(0, 0, 0);
+                citadelGroup.add(spoke);
+
+                // Glowing windows on spokes
+                const windowGeo = new THREE.BoxGeometry(0.6, 0.3, 10);
+                const windowMesh = new THREE.Mesh(windowGeo, matWindow);
+                windowMesh.position.copy(spoke.position);
+                windowMesh.lookAt(0, 0, 0);
+                citadelGroup.add(windowMesh);
+            }
+
+            // Docking stations on the ring
+            for(let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const dockGeo = new THREE.BoxGeometry(2, 3, 3);
+                const dock = new THREE.Mesh(dockGeo, matMetal);
+                
+                dock.position.set(
+                    Math.cos(angle) * 18,
+                    0,
+                    Math.sin(angle) * 18
+                );
+                
+                // Add glowing entrance
+                const entranceGeo = new THREE.BoxGeometry(1.5, 2, 0.5);
+                const entrance = new THREE.Mesh(entranceGeo, matGreen);
+                entrance.position.z = 1.5;
+                dock.add(entrance);
+                
+                citadelGroup.add(dock);
+            }
+
+            // Top antenna/spire structures
+            for(let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const spireGeo = new THREE.CylinderGeometry(0.3, 0.5, 8, 8);
+                const spire = new THREE.Mesh(spireGeo, matMetalLight);
+                
+                spire.position.set(
+                    Math.cos(angle) * 8,
+                    8,
+                    Math.sin(angle) * 8
+                );
+                
+                // Glowing tip
+                const tipGeo = new THREE.SphereGeometry(0.6, 8, 8);
+                const tip = new THREE.Mesh(tipGeo, matGreen);
+                tip.position.y = 4.5;
+                spire.add(tip);
+                
+                citadelGroup.add(spire);
+            }
+
+            // Bottom disc/platform
+            const discGeo = new THREE.CylinderGeometry(16, 17, 1, 32);
+            const disc = new THREE.Mesh(discGeo, matMetal);
+            disc.position.y = -8;
+            citadelGroup.add(disc);
+
+            // Windows/lights around the core
+            for(let i = 0; i < 20; i++) {
+                const angle = (i / 20) * Math.PI * 2;
+                const height = (Math.random() - 0.5) * 8;
+                
+                const windowGeo = new THREE.BoxGeometry(0.8, 0.8, 0.3);
+                const window = new THREE.Mesh(windowGeo, matWindow);
+                
+                window.position.set(
+                    Math.cos(angle) * 6.2,
+                    height,
+                    Math.sin(angle) * 6.2
+                );
+                window.lookAt(0, height, 0);
+                
+                citadelGroup.add(window);
+            }
+
+            // Portal/Energy sphere in center
+            const portalGeo = new THREE.SphereGeometry(3, 32, 32);
+            const portalMat = new THREE.MeshBasicMaterial({
+                color: 0x97ce4c,
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.BackSide
+            });
+            const portal = new THREE.Mesh(portalGeo, portalMat);
+            citadelGroup.add(portal);
+
+            // Outer glow rings
+            for(let i = 0; i < 3; i++) {
+                const glowRingGeo = new THREE.TorusGeometry(20 + i * 2, 0.2, 8, 32);
+                const glowRing = new THREE.Mesh(glowRingGeo, matGreen);
+                glowRing.rotation.x = Math.PI / 2;
+                glowRing.position.y = (i - 1) * 2;
+                citadelGroup.add(glowRing);
             }
 
             const userData = {
@@ -606,6 +693,7 @@
             });
 
             citadelGroup.position.set(0, 0, 0);
+            citadelGroup.scale.set(1.2, 1.2, 1.2);
             return citadelGroup;
         }
 
