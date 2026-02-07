@@ -3,41 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C-137 Galactic Scanner</title>
+    <title>Galactic Atlas C-137</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
-        
-        /* Rick and Morty UI Overlay */
-        #gui {
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Courier New', monospace; }
+        #ui {
             position: absolute; top: 20px; left: 20px;
-            border: 4px solid #00ff41; background: rgba(0, 20, 0, 0.85);
-            padding: 20px; color: #00ff41; border-radius: 15px;
-            box-shadow: 0 0 20px #00ff41, inset 0 0 10px #00ff41;
-            pointer-events: none; z-index: 100;
+            border: 3px solid #00ff41; background: rgba(0, 40, 0, 0.9);
+            padding: 15px; color: #00ff41; border-radius: 10px;
+            box-shadow: 0 0 20px #00ff41; z-index: 10; pointer-events: none;
         }
-
         .label {
-            position: absolute; color: white; background: rgba(0,0,0,0.7);
-            padding: 2px 5px; border: 1px solid #00ff41; border-radius: 4px;
-            font-size: 12px; pointer-events: none; text-transform: uppercase;
+            position: absolute; color: #fff; font-size: 10px;
+            background: rgba(0,0,0,0.8); border: 1px solid #ff00ff;
+            padding: 2px 4px; border-radius: 3px; pointer-events: none;
+            text-transform: uppercase; white-space: nowrap;
         }
-
-        #crosshair {
-            position: absolute; top: 50%; left: 50%; width: 60px; height: 60px;
-            border: 2px solid #ff00ff; border-radius: 50%; transform: translate(-50%, -50%);
-            pointer-events: none; box-shadow: 0 0 10px #ff00ff;
+        #legend {
+            position: absolute; bottom: 20px; right: 20px;
+            color: #00ff41; background: rgba(0,0,0,0.7);
+            padding: 10px; border: 1px solid #00ff41; font-size: 12px;
         }
     </style>
 </head>
 <body>
 
-    <div id="gui">
-        <h2 style="margin:0">SCANNER: MILKY WAY</h2>
-        <p style="color: #ffff00">> COORDINATES: EARTH (C-137)</p>
-        <p>> DETECTING: 8 PLANETS, 4 FAMOUS STARS</p>
-        <p style="font-size: 10px; color: #00ccff;">SCROLL TO ZOOM | DRAG TO ROTATE</p>
+    <div id="ui">
+        <h2 style="margin:0">MILKY WAY: FULL SECTOR SCAN</h2>
+        <div style="color: #ff00ff">> DATA SOURCE: HUMAN KNOWLEDGE BASE</div>
+        <div id="status">> SCANNING NEBULAE... OK</div>
     </div>
-    <div id="crosshair"></div>
+
+    <div id="legend">
+        <b>LEGEND:</b><br>
+        <span style="color:#ffff00">●</span> Solar System<br>
+        <span style="color:#ff0000">●</span> Sag A* (Black Hole)<br>
+        <span style="color:#00ffff">●</span> Major Star Clusters
+    </div>
 
     <script type="importmap">
         {
@@ -52,119 +53,134 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // --- SCENE SETUP ---
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
-        camera.position.set(30, 50, 80);
+        camera.position.set(150, 100, 200);
 
-        // --- RICK & MORTY STYLE PLANET BUILDER ---
-        function createToonPlanet(radius, color, position, name) {
+        const landmarks = [];
+
+        // --- HELPER: RICK STYLE OBJECTS ---
+        function createToonObject(radius, color, pos, name) {
             const group = new THREE.Group();
-
-            // 1. The Planet Core
-            const geometry = new THREE.SphereGeometry(radius, 32, 32);
-            const material = new THREE.MeshBasicMaterial({ color: color });
-            const planet = new THREE.Mesh(geometry, material);
-            group.add(planet);
-
-            // 2. The BLACK OUTLINE (The "Rick" style)
-            // We create a slightly larger sphere, inverted
+            const geo = new THREE.SphereGeometry(radius, 16, 16);
+            const mat = new THREE.MeshBasicMaterial({ color: color });
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            // Black Outline
             const outlineMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
-            const outlineMesh = new THREE.Mesh(geometry, outlineMat);
-            outlineMesh.scale.multiplyScalar(1.15); // Make it 15% bigger
-            group.add(outlineMesh);
-
-            group.position.set(position.x, position.y, position.z);
+            const outline = new THREE.Mesh(geo, outlineMat);
+            outline.scale.set(1.2, 1.2, 1.2);
+            
+            group.add(outline);
+            group.add(mesh);
+            group.position.set(pos.x, pos.y, pos.z);
             scene.add(group);
 
-            // Add Text Label
             const div = document.createElement('div');
             div.className = 'label';
             div.textContent = name;
             document.body.appendChild(div);
-
-            return { mesh: group, label: div };
+            
+            landmarks.push({ mesh: group, label: div });
+            return group;
         }
 
-        // --- DATA: SOLAR SYSTEM ---
-        const planets = [
-            { name: "Sun", r: 3, c: 0xffcc00, pos: {x:0, y:0, z:0} },
-            { name: "Mercury", r: 0.4, c: 0xaaaaaa, pos: {x:6, y:0, z:0} },
-            { name: "Venus", r: 0.8, c: 0xff8800, pos: {x:10, y:0, z:5} },
-            { name: "Earth", r: 0.9, c: 0x0088ff, pos: {x:15, y:0, z:-5} },
-            { name: "Mars", r: 0.6, c: 0xff4400, pos: {x:20, y:0, z:8} },
-            { name: "Jupiter", r: 2.2, c: 0xd8a37d, pos: {x:30, y:0, z:-15} },
-            { name: "Saturn", r: 1.8, c: 0xead6b8, pos: {x:40, y:0, z:10} },
-        ];
+        // --- THE GALAXY STRUCTURE ---
+        function buildMilkyWay() {
+            const starCount = 150000;
+            const geo = new THREE.BufferGeometry();
+            const pos = new Float32Array(starCount * 3);
+            const col = new Float32Array(starCount * 3);
 
-        const planetObjects = planets.map(p => createToonPlanet(p.r, p.c, p.pos, p.name));
+            for (let i = 0; i < starCount; i++) {
+                const i3 = i * 3;
+                let x, y, z;
+                
+                // DISTRIBUTE STARS BY REGION
+                const dice = Math.random();
 
-        // --- DATA: FAMOUS STARS (GAIA DATA APPROX) ---
-        createToonPlanet(1.5, 0xffffff, {x: 100, y: 20, z: -50}, "Sirius");
-        createToonPlanet(2.5, 0xff3300, {x: -150, y: 50, z: 100}, "Betelgeuse");
-        createToonPlanet(1.2, 0x00ffff, {x: 40, y: -30, z: 80}, "Alpha Centauri");
+                if (dice < 0.2) { 
+                    // 1. THE BULGE (The dense center)
+                    const r = Math.random() * 20;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    x = r * Math.sin(phi) * Math.cos(theta);
+                    y = r * Math.sin(phi) * Math.sin(theta) * 0.5;
+                    z = r * Math.cos(phi);
+                    // Yellow/Orange
+                    col[i3] = 1; col[i3+1] = 0.8; col[i3+2] = 0.2;
+                } 
+                else if (dice < 0.95) { 
+                    // 2. THE DISK (Actual Milky Way Arms)
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 20 + Math.random() * 180;
+                    // Barred spiral math
+                    const spin = radius * 0.08;
+                    const arm = (i % 2) * Math.PI; // 2 main arms
+                    
+                    x = Math.cos(angle + spin + arm) * radius + (Math.random()-0.5)*15;
+                    y = (Math.random()-0.5) * (10 * (1 - radius/200)); 
+                    z = Math.sin(angle + spin + arm) * radius + (Math.random()-0.5)*15;
+                    
+                    // Cyan/Purple Neon
+                    col[i3] = 0.2; col[i3+1] = 1.0; col[i3+2] = 1.0;
+                    if(Math.random() > 0.5) { col[i3] = 0.8; col[i3+1] = 0.1; col[i3+2] = 1.0; }
+                } 
+                else { 
+                    // 3. THE HALO (Outer sparse stars)
+                    const r = 200 + Math.random() * 100;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    x = r * Math.sin(phi) * Math.cos(theta);
+                    y = r * Math.sin(phi) * Math.sin(theta);
+                    z = r * Math.cos(phi);
+                    // White/Faded
+                    col[i3] = 0.5; col[i3+1] = 0.5; col[i3+2] = 0.5;
+                }
 
-        // --- THE GALAXY (MILKY WAY STRUCTURE) ---
-        const starCount = 120000;
-        const starGeo = new THREE.BufferGeometry();
-        const starPos = new Float32Array(starCount * 3);
-        const starCol = new Float32Array(starCount * 3);
+                pos[i3] = x; pos[i3+1] = y; pos[i3+2] = z;
+            }
 
-        for(let i=0; i<starCount; i++) {
-            const i3 = i * 3;
-            const radius = Math.random() * 250;
-            const spin = radius * 0.1;
-            const branch = (i % 4) * (Math.PI / 2); // 4 arms
-
-            starPos[i3] = Math.cos(spin + branch) * radius + (Math.random()-0.5) * (radius * 0.2);
-            starPos[i3+1] = (Math.random()-0.5) * (15 / (radius * 0.05 + 1)); // Thinning at edges
-            starPos[i3+2] = Math.sin(spin + branch) * radius + (Math.random()-0.5) * (radius * 0.2);
-
-            // Rick's neon colors
-            const mix = radius / 250;
-            starCol[i3] = 0.2 + mix; // R
-            starCol[i3+1] = 1.0 - mix; // G
-            starCol[i3+2] = 0.5 + mix; // B
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+            
+            const mat = new THREE.PointsMaterial({ size: 0.6, vertexColors: true, transparent: true, opacity: 0.6 });
+            scene.add(new THREE.Points(geo, mat));
         }
 
-        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        starGeo.setAttribute('color', new THREE.BufferAttribute(starCol, 3));
+        buildMilkyWay();
+
+        // --- HUMAN KNOWLEDGE LANDMARKS ---
+        // 1. Sagittarius A* (The Center)
+        createToonObject(4, 0xff0000, {x:0, y:0, z:0}, "Sagittarius A* (Black Hole)");
         
-        const starMat = new THREE.PointsMaterial({
-            size: 0.5,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.8
-        });
+        // 2. Solar System (Positioned ~27,000 light years from center)
+        createToonObject(2, 0xffff00, {x:80, y:2, z:60}, "Solar System (Earth)");
 
-        const galaxy = new THREE.Points(starGeo, starMat);
-        scene.add(galaxy);
+        // 3. Known Clusters/Nebulae
+        createToonObject(1.5, 0x00ff00, {x:-40, y:10, z:-80}, "Eagle Nebula");
+        createToonObject(1.5, 0x00ff00, {x:120, y:-5, z:10}, "Pleiades Cluster");
+        createToonObject(1.5, 0x00ff00, {x:30, y:15, z:40}, "Orion Nebula");
 
-        // --- ANIMATION LOOP ---
+        // --- ANIMATION ---
         function animate() {
             requestAnimationFrame(animate);
             
-            // Slowly spin the whole galaxy
-            galaxy.rotation.y += 0.0005;
-
-            // Update Labels (Project 3D to 2D)
-            planetObjects.forEach(obj => {
-                const vector = obj.mesh.position.clone();
+            // Label Projection
+            landmarks.forEach(item => {
+                const vector = item.mesh.position.clone();
                 vector.project(camera);
-
-                if(vector.z < 1) { // Only show if in front of camera
-                    const x = (vector.x * .5 + .5) * window.innerWidth;
-                    const y = (vector.y * -.5 + .5) * window.innerHeight;
-                    obj.label.style.display = 'block';
-                    obj.label.style.left = x + 'px';
-                    obj.label.style.top = y + 'px';
+                if(vector.z < 1) {
+                    item.label.style.display = 'block';
+                    item.label.style.left = (vector.x * 0.5 + 0.5) * window.innerWidth + 'px';
+                    item.label.style.top = (vector.y * -0.5 + 0.5) * window.innerHeight + 'px';
                 } else {
-                    obj.label.style.display = 'none';
+                    item.label.style.display = 'none';
                 }
             });
 
@@ -182,3 +198,4 @@
     </script>
 </body>
 </html>
+
