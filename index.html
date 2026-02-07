@@ -194,12 +194,16 @@
     <div id="canvas-container"></div>
     
     <div id="hud">
-        <h2>SOLAR SYSTEM DATABASE</h2>
-        <div>Status: <span class="status">SCANNING</span></div>
-        <div>Objects Tracked: <span id="obj-count">0</span></div>
+        <h2>⚡ SOLAR SYSTEM DATABASE ⚡</h2>
+        <div>Status: <span class="status">ONLINE</span></div>
+        <div>Objects: <span id="obj-count">0</span></div>
+        <div>Portal Stability: <span class="status">98.7%</span></div>
         <div>Current View: <span id="current-view">Overview</span></div>
         <div id="celestial-info">
-            <div class="celestial-label">Tap/Click any object for details</div>
+            <div class="celestial-label">👆 Tap/Click any object</div>
+            <div style="font-size: 9px; margin-top: 5px; color: #00ffff;">
+                *burp* Don't touch Pluto, Morty. It's not even a real planet.
+            </div>
         </div>
     </div>
     
@@ -207,7 +211,8 @@
         <button class="view-btn active" onclick="setView('overview')">OVERVIEW</button><br>
         <button class="view-btn" onclick="setView('inner')">INNER SYSTEM</button><br>
         <button class="view-btn" onclick="setView('outer')">OUTER SYSTEM</button><br>
-        <button class="view-btn" onclick="resetCamera()">RESET VIEW</button>
+        <button class="view-btn" onclick="resetCamera()">RESET VIEW</button><br>
+        <button class="view-btn" onclick="portalJump()" style="background: rgba(0, 255, 0, 0.3); margin-top: 10px;">🌀 PORTAL JUMP</button>
     </div>
     
     <div id="controls">
@@ -428,7 +433,7 @@
         const orbitLines = [];
         let objectCount = 0;
         
-        // Create Sun
+        // Create Sun - Rick and Morty style
         const sunGroup = new THREE.Group();
         const sunGeometry = new THREE.SphereGeometry(solarSystemData.sun.radius, 32, 32);
         const sunMaterial = new THREE.MeshBasicMaterial({
@@ -439,27 +444,50 @@
         const sun = new THREE.Mesh(sunGeometry, sunMaterial);
         sun.userData = solarSystemData.sun;
         
-        // Sun glow
-        const sunGlowGeometry = new THREE.SphereGeometry(solarSystemData.sun.radius * 1.5, 32, 32);
-        const sunGlowMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffff00,
-            transparent: true,
-            opacity: 0.3,
-            side: THREE.BackSide
-        });
-        const sunGlow = new THREE.Mesh(sunGlowGeometry, sunGlowMaterial);
-        sun.add(sunGlow);
+        // Multiple glowing layers for Rick and Morty sun effect
+        for (let i = 1; i <= 3; i++) {
+            const glowGeometry = new THREE.SphereGeometry(solarSystemData.sun.radius * (1 + i * 0.2), 32, 32);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                transparent: true,
+                opacity: 0.3 / i,
+                side: THREE.BackSide
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.userData.glowLayer = i;
+            sun.add(glow);
+        }
+        
+        // Add energy particles around sun
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2;
+            const particleGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+            const particleMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffaa00,
+                transparent: true,
+                opacity: 0.8
+            });
+            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+            const radius = solarSystemData.sun.radius * 1.3;
+            particle.position.x = Math.cos(angle) * radius;
+            particle.position.y = Math.sin(angle) * radius;
+            particle.userData.sunParticle = true;
+            particle.userData.angle = angle;
+            particle.userData.radius = radius;
+            particle.userData.speed = 0.02 + Math.random() * 0.02;
+            sun.add(particle);
+        }
         
         sunGroup.add(sun);
         scene.add(sunGroup);
         celestialObjects.push(sunGroup);
         objectCount++;
         
-        // Create planets with moons
+        // Create planets with moons - Rick and Morty style
         solarSystemData.planets.forEach(planetData => {
             const planetGroup = new THREE.Group();
             
-            // Create orbit line
+            // Create orbit line with portal effect
             const orbitGeometry = new THREE.BufferGeometry();
             const orbitPoints = [];
             for (let i = 0; i <= 64; i++) {
@@ -474,18 +502,19 @@
             const orbitMaterial = new THREE.LineBasicMaterial({
                 color: 0x00ff00,
                 transparent: true,
-                opacity: 0.2
+                opacity: 0.4
             });
             const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
+            orbitLine.userData.orbit = true;
             scene.add(orbitLine);
             orbitLines.push(orbitLine);
             
-            // Create planet
+            // Create planet with cartoon shader
             const planetGeometry = new THREE.SphereGeometry(planetData.radius, 24, 24);
             const planetMaterial = new THREE.MeshToonMaterial({
                 color: planetData.color,
                 emissive: planetData.color,
-                emissiveIntensity: 0.2
+                emissiveIntensity: 0.3
             });
             const planet = new THREE.Mesh(planetGeometry, planetMaterial);
             planet.userData = planetData;
@@ -493,8 +522,8 @@
             planet.userData.orbitSpeed = planetData.orbitSpeed;
             planet.userData.orbitAngle = Math.random() * Math.PI * 2;
             
-            // Planet outline
-            const outlineGeometry = new THREE.SphereGeometry(planetData.radius * 1.05, 24, 24);
+            // Thick black outline for cartoon effect
+            const outlineGeometry = new THREE.SphereGeometry(planetData.radius * 1.08, 24, 24);
             const outlineMaterial = new THREE.MeshBasicMaterial({
                 color: 0x000000,
                 side: THREE.BackSide
@@ -502,12 +531,42 @@
             const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
             planet.add(outline);
             
+            // Portal-like ring around planet
+            const ringGeometry = new THREE.TorusGeometry(planetData.radius * 1.3, planetData.radius * 0.08, 16, 32);
+            const ringMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 0.5
+            });
+            const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            ring.rotation.x = Math.PI / 2;
+            ring.userData.portalRing = true;
+            planet.add(ring);
+            
+            // Dripping particles around planet
+            for (let i = 0; i < 6; i++) {
+                const angle = (i / 6) * Math.PI * 2;
+                const dripGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+                const dripMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ff00,
+                    transparent: true,
+                    opacity: 0.7
+                });
+                const drip = new THREE.Mesh(dripGeometry, dripMaterial);
+                drip.position.x = Math.cos(angle) * planetData.radius * 1.4;
+                drip.position.z = Math.sin(angle) * planetData.radius * 1.4;
+                drip.userData.drip = true;
+                drip.userData.angle = angle;
+                drip.userData.offset = Math.random() * Math.PI * 2;
+                planet.add(drip);
+            }
+            
             planetGroup.add(planet);
             scene.add(planetGroup);
             celestialObjects.push(planetGroup);
             objectCount++;
             
-            // Create moons
+            // Create moons with portal effect
             planetData.moons.forEach(moonData => {
                 const moonGroup = new THREE.Group();
                 
@@ -515,7 +574,7 @@
                 const moonMaterial = new THREE.MeshToonMaterial({
                     color: moonData.color,
                     emissive: moonData.color,
-                    emissiveIntensity: 0.1
+                    emissiveIntensity: 0.2
                 });
                 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
                 moon.userData = moonData;
@@ -525,13 +584,25 @@
                 moon.userData.orbitAngle = Math.random() * Math.PI * 2;
                 moon.userData.parent = planet;
                 
-                const moonOutlineGeometry = new THREE.SphereGeometry(moonData.radius * 1.05, 16, 16);
+                const moonOutlineGeometry = new THREE.SphereGeometry(moonData.radius * 1.08, 16, 16);
                 const moonOutlineMaterial = new THREE.MeshBasicMaterial({
                     color: 0x000000,
                     side: THREE.BackSide
                 });
                 const moonOutline = new THREE.Mesh(moonOutlineGeometry, moonOutlineMaterial);
                 moon.add(moonOutline);
+                
+                // Small portal ring for moons
+                const moonRingGeometry = new THREE.TorusGeometry(moonData.radius * 1.2, moonData.radius * 0.06, 12, 24);
+                const moonRingMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ffff,
+                    transparent: true,
+                    opacity: 0.4
+                });
+                const moonRing = new THREE.Mesh(moonRingGeometry, moonRingMaterial);
+                moonRing.rotation.x = Math.PI / 2;
+                moonRing.userData.portalRing = true;
+                moon.add(moonRing);
                 
                 moonGroup.add(moon);
                 planetGroup.add(moonGroup);
@@ -540,7 +611,7 @@
             });
         });
         
-        // Create dwarf planets
+        // Create dwarf planets - Rick and Morty style
         solarSystemData.dwarfPlanets.forEach(dwarfData => {
             const dwarfGroup = new THREE.Group();
             
@@ -558,9 +629,10 @@
             const orbitMaterial = new THREE.LineBasicMaterial({
                 color: 0xff6600,
                 transparent: true,
-                opacity: 0.3
+                opacity: 0.4
             });
             const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
+            orbitLine.userData.orbit = true;
             scene.add(orbitLine);
             orbitLines.push(orbitLine);
             
@@ -568,7 +640,7 @@
             const dwarfMaterial = new THREE.MeshToonMaterial({
                 color: dwarfData.color,
                 emissive: dwarfData.color,
-                emissiveIntensity: 0.2
+                emissiveIntensity: 0.3
             });
             const dwarf = new THREE.Mesh(dwarfGeometry, dwarfMaterial);
             dwarf.userData = dwarfData;
@@ -576,13 +648,25 @@
             dwarf.userData.orbitSpeed = dwarfData.orbitSpeed;
             dwarf.userData.orbitAngle = Math.random() * Math.PI * 2;
             
-            const outlineGeometry = new THREE.SphereGeometry(dwarfData.radius * 1.05, 20, 20);
+            const outlineGeometry = new THREE.SphereGeometry(dwarfData.radius * 1.08, 20, 20);
             const outlineMaterial = new THREE.MeshBasicMaterial({
                 color: 0x000000,
                 side: THREE.BackSide
             });
             const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
             dwarf.add(outline);
+            
+            // Orange portal ring for Pluto
+            const ringGeometry = new THREE.TorusGeometry(dwarfData.radius * 1.3, dwarfData.radius * 0.08, 16, 32);
+            const ringMaterial = new THREE.MeshBasicMaterial({
+                color: 0xff6600,
+                transparent: true,
+                opacity: 0.5
+            });
+            const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            ring.rotation.x = Math.PI / 2;
+            ring.userData.portalRing = true;
+            dwarf.add(ring);
             
             dwarfGroup.add(dwarf);
             scene.add(dwarfGroup);
@@ -597,7 +681,7 @@
                 const moonMaterial = new THREE.MeshToonMaterial({
                     color: moonData.color,
                     emissive: moonData.color,
-                    emissiveIntensity: 0.1
+                    emissiveIntensity: 0.2
                 });
                 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
                 moon.userData = moonData;
@@ -606,6 +690,14 @@
                 moon.userData.orbitSpeed = 0.03;
                 moon.userData.orbitAngle = Math.random() * Math.PI * 2;
                 moon.userData.parent = dwarf;
+                
+                const moonOutlineGeometry = new THREE.SphereGeometry(moonData.radius * 1.08, 16, 16);
+                const moonOutlineMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x000000,
+                    side: THREE.BackSide
+                });
+                const moonOutline = new THREE.Mesh(moonOutlineGeometry, moonOutlineMaterial);
+                moon.add(moonOutline);
                 
                 moonGroup.add(moon);
                 dwarfGroup.add(moonGroup);
@@ -818,11 +910,35 @@
                 factsHTML += '</div>';
             }
             
+            // Rick's snarky comments
+            const rickComments = {
+                'Sun': "*burp* It's a giant ball of nuclear fusion, Morty. Don't stare at it.",
+                'Mercury': "Closest to the sun. Hotter than your mix tape, Morty.",
+                'Venus': "Toxic atmosphere, acid rain, 900 degrees. Basically your aunt's house.",
+                'Earth': "C-137's version got Cronenberged. This one's... okay I guess.",
+                'Moon': "Allegedly made of cheese. Allegedly. *burp*",
+                'Mars': "Red planet. Elon's wet dream. Probably gonna terraform it wrong.",
+                'Jupiter': "*burp* Big boy. Could fit like a thousand Earths. Who's counting though?",
+                'Saturn': "Ooh look at me, I have rings! *burp* Show off.",
+                'Uranus': "Hehe. You said Uranus. Classic Morty.",
+                'Neptune': "It's blue, it's far, it's got supersonic winds. What else you want?",
+                'Pluto': "NOT A PLANET ANYMORE, MORTY! Get over it!",
+                'Titan': "Saturn's moon with atmosphere. Could have life. Probably doesn't.",
+                'Europa': "Ice moon with ocean. Might have alien fish. Might not. *burp*",
+                'Io': "Most volcanically active body. Like my stomach after Taco Bell.",
+                'Ganymede': "Biggest moon in the solar system. Overachiever."
+            };
+            
+            const rickComment = rickComments[data.name] || "*burp* Yeah, it's a celestial body, Morty. What'd you expect?";
+            
             celestialInfo.innerHTML = `
                 <div class="celestial-label">${data.name}</div>
                 <span class="type-tag ${typeClass}">${data.type.toUpperCase()}</span><br>
                 <div style="margin-top: 5px;"><strong>Info:</strong> ${data.info}</div>
                 ${factsHTML}
+                <div style="margin-top: 8px; padding: 5px; background: rgba(0, 100, 0, 0.3); border-left: 2px solid #00ffff; font-style: italic; color: #00ffff; font-size: 9px;">
+                    ${rickComment}
+                </div>
             `;
         }
         
@@ -893,26 +1009,192 @@
             animate();
         }
         
+        // Portal Jump Effect - Rick and Morty style
+        function portalJump() {
+            // Create portal flash
+            const portalFlash = new THREE.PointLight(0x00ff00, 10, 50);
+            portalFlash.position.copy(camera.position);
+            scene.add(portalFlash);
+            
+            // Create expanding portal ring
+            const portalRingGeometry = new THREE.TorusGeometry(2, 0.5, 16, 32);
+            const portalRingMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                transparent: true,
+                opacity: 1,
+                side: THREE.DoubleSide
+            });
+            const portalRing = new THREE.Mesh(portalRingGeometry, portalRingMaterial);
+            portalRing.position.copy(camera.position);
+            portalRing.lookAt(0, 0, 0);
+            scene.add(portalRing);
+            
+            // Create portal liquid splatter particles
+            const particles = [];
+            for (let i = 0; i < 30; i++) {
+                const particleGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+                const particleMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ff00,
+                    transparent: true,
+                    opacity: 1
+                });
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                particle.position.copy(camera.position);
+                
+                const angle = (i / 30) * Math.PI * 2;
+                const speed = 0.3 + Math.random() * 0.3;
+                particle.userData.velocity = new THREE.Vector3(
+                    Math.cos(angle) * speed,
+                    Math.sin(angle) * speed,
+                    (Math.random() - 0.5) * speed
+                );
+                scene.add(particle);
+                particles.push(particle);
+            }
+            
+            // Random planet to jump to
+            const randomPlanet = celestialObjects[Math.floor(Math.random() * celestialObjects.length)];
+            let targetPosition;
+            randomPlanet.traverse(obj => {
+                if (obj.userData.name && obj.userData.orbitDistance) {
+                    const distance = obj.userData.orbitDistance + 8;
+                    targetPosition = new THREE.Vector3(
+                        obj.position.x + distance,
+                        distance * 0.5,
+                        obj.position.z + distance
+                    );
+                }
+            });
+            
+            if (!targetPosition) {
+                targetPosition = new THREE.Vector3(
+                    Math.random() * 40 - 20,
+                    20,
+                    Math.random() * 40 - 20
+                );
+            }
+            
+            // Animate portal effect
+            let frame = 0;
+            const portalAnimation = setInterval(() => {
+                frame++;
+                
+                // Expand and fade ring
+                const scale = 1 + frame * 0.4;
+                portalRing.scale.set(scale, scale, scale);
+                portalRing.material.opacity = Math.max(0, 1 - (frame / 25));
+                portalRing.rotation.z += 0.1;
+                
+                // Move and fade particles with drip effect
+                particles.forEach(p => {
+                    p.position.add(p.userData.velocity);
+                    p.userData.velocity.y -= 0.02; // Gravity drip
+                    p.material.opacity = Math.max(0, 1 - (frame / 25));
+                    
+                    const wobble = Math.sin(frame * 0.3) * 0.1;
+                    p.scale.set(1 + wobble, 1 + wobble, 1 + wobble);
+                });
+                
+                // Dim and flicker light
+                portalFlash.intensity = Math.max(0, 10 - frame * 0.5);
+                
+                if (frame >= 25) {
+                    clearInterval(portalAnimation);
+                    scene.remove(portalFlash);
+                    scene.remove(portalRing);
+                    particles.forEach(p => scene.remove(p));
+                }
+            }, 30);
+            
+            // Jump camera after short delay
+            setTimeout(() => {
+                animateCamera(targetPosition);
+                
+                // Show Rick's comment
+                const comments = [
+                    "*burp* There we go, Morty!",
+                    "Wubba lubba dub dub!",
+                    "And that's the wayyyy the news goes!",
+                    "Grassssss tastes bad!",
+                    "Lick lick lick my balls!",
+                    "Hit the sack, Jack!",
+                    "Uh oh, somersault jump!",
+                    "AIDS!",
+                    "No jumping in the sewer!"
+                ];
+                const randomComment = comments[Math.floor(Math.random() * comments.length)];
+                
+                celestialInfo.innerHTML = `
+                    <div class="celestial-label">Portal Jump Complete!</div>
+                    <div style="margin-top: 5px; color: #00ffff; font-style: italic;">
+                        ${randomComment}
+                    </div>
+                `;
+            }, 300);
+        }
+        
         // Animation loop
         let time = 0;
         function animate() {
             requestAnimationFrame(animate);
             time += 0.01;
             
-            // Rotate sun
+            // Animate sun with Rick and Morty effects
             sunGroup.rotation.y += 0.005;
             
-            // Orbit planets
+            sunGroup.traverse(obj => {
+                // Animate glow layers
+                if (obj.userData.glowLayer) {
+                    const layer = obj.userData.glowLayer;
+                    obj.rotation.y += 0.01 * layer;
+                    const pulse = Math.sin(time * 2 + layer) * 0.1 + 1;
+                    obj.scale.set(pulse, pulse, pulse);
+                }
+                
+                // Animate sun particles
+                if (obj.userData.sunParticle) {
+                    obj.userData.angle += obj.userData.speed;
+                    const wobble = Math.sin(time * 3 + obj.userData.angle) * 0.3;
+                    obj.position.x = Math.cos(obj.userData.angle) * (obj.userData.radius + wobble);
+                    obj.position.y = Math.sin(obj.userData.angle) * (obj.userData.radius + wobble);
+                    obj.position.z = Math.sin(time * 2 + obj.userData.angle) * 0.5;
+                    
+                    const scale = 0.7 + Math.sin(time * 4 + obj.userData.angle) * 0.3;
+                    obj.scale.set(scale, scale, scale);
+                }
+            });
+            
+            // Orbit planets with portal effects
             celestialObjects.forEach(group => {
                 group.traverse(obj => {
+                    // Animate portal rings
+                    if (obj.userData.portalRing) {
+                        obj.rotation.z += 0.03;
+                        const ringPulse = Math.sin(time * 3) * 0.1 + 0.9;
+                        obj.scale.set(ringPulse, ringPulse, 1);
+                        obj.material.opacity = 0.4 + Math.sin(time * 2) * 0.2;
+                    }
+                    
+                    // Animate drips
+                    if (obj.userData.drip) {
+                        const angle = obj.userData.angle;
+                        const offset = obj.userData.offset;
+                        const dripWobble = Math.sin(time * 3 + offset) * 0.3;
+                        obj.position.y = Math.sin(time * 2 + offset) * 0.4 - 0.2;
+                        
+                        const dripScale = 0.6 + Math.sin(time * 4 + offset) * 0.4;
+                        obj.scale.set(dripScale, dripScale, dripScale);
+                        obj.material.opacity = 0.5 + Math.sin(time * 3 + offset) * 0.3;
+                    }
+                    
                     if (obj.userData.orbitSpeed !== undefined && obj.userData.orbitDistance !== undefined) {
                         obj.userData.orbitAngle += obj.userData.orbitSpeed;
                         
                         if (obj.userData.type === 'moon' && obj.userData.parent) {
                             // Moon orbits around its parent planet
-                            const parentPos = obj.userData.parent.position;
                             obj.position.x = Math.cos(obj.userData.orbitAngle) * obj.userData.orbitDistance;
                             obj.position.z = Math.sin(obj.userData.orbitAngle) * obj.userData.orbitDistance;
+                            obj.position.y = Math.sin(obj.userData.orbitAngle * 2) * 0.2; // Slight vertical wobble
                         } else {
                             // Planet orbits around sun
                             obj.position.x = Math.cos(obj.userData.orbitAngle) * obj.userData.orbitDistance;
@@ -924,17 +1206,25 @@
                 });
             });
             
-            // Pulse sun glow
-            if (sunGlow) {
-                sunGlow.scale.set(
-                    1 + Math.sin(time * 2) * 0.1,
-                    1 + Math.sin(time * 2) * 0.1,
-                    1 + Math.sin(time * 2) * 0.1
-                );
-            }
+            // Animate orbit lines with portal energy
+            orbitLines.forEach((line, i) => {
+                if (line.userData.orbit) {
+                    line.material.opacity = 0.3 + Math.sin(time * 2 + i) * 0.2;
+                }
+            });
             
-            // Slowly rotate starfield
-            stars.rotation.y += 0.0001;
+            // Rotate starfield with Rick and Morty space effect
+            stars.rotation.y += 0.0002;
+            stars.rotation.x += 0.0001;
+            
+            // Make stars twinkle
+            const positions = stars.geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                if (Math.random() > 0.995) {
+                    positions[i + 1] += (Math.random() - 0.5) * 0.1;
+                }
+            }
+            stars.geometry.attributes.position.needsUpdate = true;
             
             renderer.render(scene, camera);
         }
