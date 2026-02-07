@@ -2,193 +2,206 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Citadel of Ricks - Interactive Inspector</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/controls/OrbitControls.js"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galactic Map - Rick and Morty Style</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Courier New', monospace; color: #00ff41; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Rick and Morty UI Style */
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff41; /* Portal Green */
+            text-shadow: 2px 2px #000;
+            pointer-events: none;
+            border: 3px solid #00ff41;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 0 15px #00ff41;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; }
+        .stats { font-size: 0.9rem; margin-top: 10px; color: #ccff00; }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ff00ff;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
         
-        /* UI Elements */
-        #loading-screen {
-            position: fixed; width: 100%; height: 100%; background: #000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: #ff00ff;
         }
-
-        #interface {
-            position: absolute; top: 20px; left: 20px; z-index: 10;
-            pointer-events: none; border-left: 2px solid #00ff41; padding-left: 15px;
-        }
-
-        #data-panel {
-            position: absolute; top: 20px; right: 20px; width: 280px;
-            background: rgba(0, 20, 0, 0.85); border: 1px solid #00ff41;
-            padding: 20px; display: none; z-index: 10;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
-        }
-
-        .btn {
-            pointer-events: all; background: #00ff41; color: #000; border: none;
-            padding: 8px 12px; cursor: pointer; font-weight: bold; margin-top: 10px;
-        }
-
-        .btn:hover { background: #fff; }
-        h1, h2 { text-transform: uppercase; margin: 0; letter-spacing: 2px; }
-        p { color: #ccc; line-height: 1.5; }
+        #crosshair::before { top: 50%; left: -10px; width: 60px; height: 2px; }
+        #crosshair::after { left: 50%; top: -10px; width: 2px; height: 60px; }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <h1>INITIALIZING...</h1>
-        <p>CITADEL_OS v2.4 // SECURE CONNECTION</p>
+    <div id="ui-layer">
+        <h1>Milky Way Scanner v.C-137</h1>
+        <div class="stats">
+            > STATUS: NOMINAL<br>
+            > SECTOR: ZZ9 Plural Z Alpha<br>
+            > OBJECTS: ~100,000 STARS DETECTED<br>
+            > WARNING: DON'T TOUCH THE SINGULARITY
+        </div>
     </div>
+    <div id="crosshair"></div>
 
-    <div id="interface">
-        <h1>CITADEL</h1>
-        <p>SECTOR: C-137_APPROACH</p>
-        <button class="btn" onclick="resetView()">RESET VIEW</button>
-    </div>
-
-    <div id="data-panel">
-        <h2 id="title">Sector Name</h2>
-        <hr style="border: 0.5px solid #00ff41; margin: 15px 0;">
-        <p id="description">Intel details...</p>
-        <p style="font-size: 0.7em; color: #00ff41;">[ SCAN COMPLETE ]</p>
-    </div>
-
-    <script>
-        let scene, camera, renderer, controls, citadel;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        let targetCamPos = null;
-
-        const pointsOfInterest = [
-            { name: "The Council", pos: [0, 6, 0], desc: "The seat of power. Where Ricks decide the fate of the Finite Curve.", color: 0x00ff41 },
-            { name: "Mortytown", pos: [5, -3, 3], desc: "A lawless district for Ricks and Mortys who have fallen off the grid.", color: 0xffcc00 },
-            { name: "Fluid Lab", pos: [-6, 1, -2], desc: "The secret production site for Portal Fluid. Keep out or be vaporized.", color: 0x0088ff },
-            { name: "Docking Ring", pos: [4, 2, -6], desc: "Intergalactic hub for cruisers and Rick-themed spacecraft.", color: 0xff4400 }
-        ];
-
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(15, 12, 20);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0x000000);
-            document.body.appendChild(renderer.domElement);
-
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-
-            // Lights
-            const ambient = new THREE.AmbientLight(0x404040, 2);
-            scene.add(ambient);
-            const point = new THREE.PointLight(0x00ff41, 2, 50);
-            point.position.set(10, 10, 10);
-            scene.add(point);
-
-            // Citadel Structure
-            citadel = new THREE.Group();
-            
-            // Core
-            const core = new THREE.Mesh(
-                new THREE.OctahedronGeometry(4, 1),
-                new THREE.MeshPhongMaterial({ color: 0x222222, flatShading: true })
-            );
-            citadel.add(core);
-
-            // Portal Ring
-            const ring = new THREE.Mesh(
-                new THREE.TorusGeometry(10, 0.05, 16, 100),
-                new THREE.MeshBasicMaterial({ color: 0x00ff41 })
-            );
-            ring.rotation.x = Math.PI / 2;
-            citadel.add(ring);
-
-            // Add POIs (Spikes)
-            pointsOfInterest.forEach(poi => {
-                const group = new THREE.Group();
-                group.position.set(...poi.pos);
-                
-                const spike = new THREE.Mesh(
-                    new THREE.ConeGeometry(0.8, 4, 6),
-                    new THREE.MeshPhongMaterial({ color: poi.color })
-                );
-                spike.lookAt(0,0,0);
-                spike.rotateX(Math.PI/2);
-                spike.userData = poi;
-
-                group.add(spike);
-                citadel.add(group);
-            });
-
-            scene.add(citadel);
-
-            // Stars
-            const starGeo = new THREE.BufferGeometry();
-            const starPos = [];
-            for(let i=0; i<2000; i++) starPos.push((Math.random()-0.5)*400, (Math.random()-0.5)*400, (Math.random()-0.5)*400);
-            starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-            scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.7})));
-
-            // Hide loading
-            document.getElementById('loading-screen').style.display = 'none';
-
-            window.addEventListener('click', onClick);
-            window.addEventListener('resize', onResize);
-            
-            animate();
-        }
-
-        function onClick(e) {
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            const items = raycaster.intersectObjects(citadel.children, true);
-
-            if (items.length > 0) {
-                const obj = items[0].object;
-                if (obj.userData.name) {
-                    document.getElementById('data-panel').style.display = 'block';
-                    document.getElementById('title').innerText = obj.userData.name;
-                    document.getElementById('description').innerText = obj.userData.desc;
-                    
-                    // Zoom camera
-                    targetCamPos = items[0].point.clone().multiplyScalar(2);
-                    controls.target.copy(items[0].point);
-                }
-            } else {
-                document.getElementById('data-panel').style.display = 'none';
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
             }
         }
+    </script>
 
-        function resetView() {
-            targetCamPos = new THREE.Vector3(15, 12, 20);
-            controls.target.set(0, 0, 0);
-            document.getElementById('data-panel').style.display = 'none';
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        camera.position.set(10, 15, 20);
+        controls.update();
+
+        // --- GALAXY PARAMETERS ---
+        const params = {
+            count: 100000,
+            size: 0.015,
+            radius: 20,
+            branches: 5,
+            spin: 1,
+            randomness: 0.2,
+            randomnessPower: 3,
+            insideColor: '#ff00ff', // Toxic Purple
+            outsideColor: '#00ffff' // Sci-fi Blue
+        };
+
+        let geometry = null;
+        let material = null;
+        let points = null;
+
+        function generateGalaxy() {
+            if (points !== null) {
+                geometry.dispose();
+                material.dispose();
+                scene.remove(points);
+            }
+
+            geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(params.count * 3);
+            const colors = new Float32Array(params.count * 3);
+
+            const colorInside = new THREE.Color(params.insideColor);
+            const colorOutside = new THREE.Color(params.outsideColor);
+
+            for (let i = 0; i < params.count; i++) {
+                const i3 = i * 3;
+
+                // Position
+                const radius = Math.random() * params.radius;
+                const spinAngle = radius * params.spin;
+                const branchAngle = ((i % params.branches) / params.branches) * Math.PI * 2;
+
+                const randomX = Math.pow(Math.random(), params.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * params.randomness * radius;
+                const randomY = Math.pow(Math.random(), params.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * params.randomness * radius;
+                const randomZ = Math.pow(Math.random(), params.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * params.randomness * radius;
+
+                positions[i3 + 0] = Math.cos(branchAngle + spinAngle) * radius + randomX;
+                positions[i3 + 1] = randomY;
+                positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
+
+                // Color
+                const mixedColor = colorInside.clone();
+                mixedColor.lerp(colorOutside, radius / params.radius);
+
+                colors[i3 + 0] = mixedColor.r;
+                colors[i3 + 1] = mixedColor.g;
+                colors[i3 + 2] = mixedColor.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            // Material - "Cartoon" style points
+            material = new THREE.PointsMaterial({
+                size: params.size,
+                sizeAttenuation: true,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending,
+                vertexColors: true
+            });
+
+            points = new THREE.Points(geometry, material);
+            scene.add(points);
         }
 
-        function onResize() {
+        // --- BACKGROUND STARS ---
+        function addBackgroundStars() {
+            const bgGeo = new THREE.BufferGeometry();
+            const bgPos = new Float32Array(5000 * 3);
+            for(let i=0; i<15000; i++) {
+                bgPos[i] = (Math.random() - 0.5) * 200;
+            }
+            bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+            const bgMat = new THREE.PointsMaterial({ size: 0.1, color: 0xffffff });
+            const bgPoints = new THREE.Points(bgGeo, bgMat);
+            scene.add(bgPoints);
+        }
+
+        generateGalaxy();
+        addBackgroundStars();
+
+        // --- ANIMATION LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            const elapsedTime = clock.getElapsedTime();
+            
+            // Rotate the galaxy slowly
+            if (points) {
+                points.rotation.y = elapsedTime * 0.05;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+        });
 
-        function animate() {
-            requestAnimationFrame(animate);
-            citadel.rotation.y += 0.001;
-            if (targetCamPos) {
-                camera.position.lerp(targetCamPos, 0.05);
-            }
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        // Start
-        window.onload = init;
+        animate();
     </script>
 </body>
 </html>
+
