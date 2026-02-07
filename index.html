@@ -2,227 +2,173 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Citadel of Ricks | Inspector v1.0</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+    <title>Citadel of Ricks - Interactive Inspector</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/controls/OrbitControls.js"></script>
     
     <style>
-        :root {
-            --portal-green: #00ff41;
-            --dark-void: #0a0a0a;
-            --terminal-font: 'Courier New', Courier, monospace;
-        }
-
-        body { margin: 0; overflow: hidden; background-color: var(--dark-void); font-family: var(--terminal-font); }
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Courier New', monospace; color: #00ff41; }
         
-        /* UI Overlay */
-        #hud-left {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: var(--portal-green);
-            text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
-            pointer-events: none;
-            border-left: 2px solid var(--portal-green);
-            padding-left: 15px;
+        /* UI Elements */
+        #loading-screen {
+            position: fixed; width: 100%; height: 100%; background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
         }
 
-        #info-card {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            width: 320px;
-            background: rgba(10, 10, 10, 0.9);
-            border: 1px solid var(--portal-green);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
-            padding: 20px;
-            color: #fff;
-            display: none;
-            clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+        #interface {
+            position: absolute; top: 20px; left: 20px; z-index: 10;
+            pointer-events: none; border-left: 2px solid #00ff41; padding-left: 15px;
+        }
+
+        #data-panel {
+            position: absolute; top: 20px; right: 20px; width: 280px;
+            background: rgba(0, 20, 0, 0.85); border: 1px solid #00ff41;
+            padding: 20px; display: none; z-index: 10;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
         }
 
         .btn {
-            pointer-events: all;
-            background: transparent;
-            color: var(--portal-green);
-            border: 1px solid var(--portal-green);
-            padding: 8px 15px;
-            cursor: pointer;
-            font-family: var(--terminal-font);
-            font-weight: bold;
-            transition: 0.3s;
-            margin-top: 10px;
+            pointer-events: all; background: #00ff41; color: #000; border: none;
+            padding: 8px 12px; cursor: pointer; font-weight: bold; margin-top: 10px;
         }
 
-        .btn:hover {
-            background: var(--portal-green);
-            color: #000;
-        }
-
-        #loading-screen {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--portal-green);
-            z-index: 999;
-        }
-
-        h2 { margin-top: 0; color: var(--portal-green); text-transform: uppercase; letter-spacing: 2px; }
+        .btn:hover { background: #fff; }
+        h1, h2 { text-transform: uppercase; margin: 0; letter-spacing: 2px; }
+        p { color: #ccc; line-height: 1.5; }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">INITIALIZING CITADEL_OS...</div>
-
-    <div id="hud-left">
-        <h1>CITADEL_OS v.2.0</h1>
-        <p>STATUS: INTERACTIVE_SCAN</p>
-        <p>LOCATION: CENTRAL_CURVE_COORDINATES</p>
-        <button class="btn" onclick="resetView()">RESET CAMERA</button>
+    <div id="loading-screen">
+        <h1>INITIALIZING...</h1>
+        <p>CITADEL_OS v2.4 // SECURE CONNECTION</p>
     </div>
 
-    <div id="info-card">
-        <h2 id="part-title">Sector Name</h2>
-        <p id="part-text">Detailed intel goes here...</p>
-        <p style="font-size: 0.7em; color: var(--portal-green);">SCAN COMPLETE // CLICK VOID TO EXIT</p>
+    <div id="interface">
+        <h1>CITADEL</h1>
+        <p>SECTOR: C-137_APPROACH</p>
+        <button class="btn" onclick="resetView()">RESET VIEW</button>
+    </div>
+
+    <div id="data-panel">
+        <h2 id="title">Sector Name</h2>
+        <hr style="border: 0.5px solid #00ff41; margin: 15px 0;">
+        <p id="description">Intel details...</p>
+        <p style="font-size: 0.7em; color: #00ff41;">[ SCAN COMPLETE ]</p>
     </div>
 
     <script>
-        let scene, camera, renderer, controls, citadelGroup;
+        let scene, camera, renderer, controls, citadel;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
+        let targetCamPos = null;
 
-        // Data for the Citadel
-        const citadelData = [
-            { name: "Council Chamber", pos: [0, 7, 0], info: "The headquarters of the Council of Ricks. It's where the most 'Rick' Ricks make decisions for the multiverse.", color: 0x00ff41 },
-            { name: "Mortytown", pos: [6, -2, 4], info: "The slums of the Citadel. Home to countless Mortys who have been abandoned by their Ricks or escaped.", color: 0xffcc00 },
-            { name: "Portal Fluid Factory", pos: [-7, 2, -3], info: "Mass production facility for the green fluid. Without this, the Citadel loses its power over travel.", color: 0x00ff41 },
-            { name: "The Finite Curve Gate", pos: [0, -8, 0], info: "The technological barrier that separates the multiverse where Rick is the smartest from everything else.", color: 0x0088ff },
-            { name: "Rick's Garage District", pos: [-5, -4, 6], info: "A chaotic sprawl of workshops where variations of Rick build inventions 24/7.", color: 0xff00ff }
+        const pointsOfInterest = [
+            { name: "The Council", pos: [0, 6, 0], desc: "The seat of power. Where Ricks decide the fate of the Finite Curve.", color: 0x00ff41 },
+            { name: "Mortytown", pos: [5, -3, 3], desc: "A lawless district for Ricks and Mortys who have fallen off the grid.", color: 0xffcc00 },
+            { name: "Fluid Lab", pos: [-6, 1, -2], desc: "The secret production site for Portal Fluid. Keep out or be vaporized.", color: 0x0088ff },
+            { name: "Docking Ring", pos: [4, 2, -6], desc: "Intergalactic hub for cruisers and Rick-themed spacecraft.", color: 0xff4400 }
         ];
 
-        init();
-        animate();
-
         function init() {
-            // 1. Scene Setup
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(20, 15, 25);
+            camera.position.set(15, 12, 20);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setClearColor(0x000000);
             document.body.appendChild(renderer.domElement);
 
-            // 2. Lights
-            const ambient = new THREE.AmbientLight(0x404040, 2);
-            scene.add(ambient);
-            const sun = new THREE.DirectionalLight(0xffffff, 2);
-            sun.position.set(10, 20, 10);
-            scene.add(sun);
-
-            // 3. Controls
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
 
-            // 4. Constructing the Citadel
-            citadelGroup = new THREE.Group();
+            // Lights
+            const ambient = new THREE.AmbientLight(0x404040, 2);
+            scene.add(ambient);
+            const point = new THREE.PointLight(0x00ff41, 2, 50);
+            point.position.set(10, 10, 10);
+            scene.add(point);
 
-            // Central Core (The main hub)
-            const coreGeo = new THREE.OctahedronGeometry(4, 2);
-            const coreMat = new THREE.MeshStandardMaterial({ color: 0x222222, flatShading: true, metalness: 0.8 });
-            const core = new THREE.Mesh(coreGeo, coreMat);
-            citadelGroup.add(core);
-
-            // Add sectors (Spikes and towers)
-            citadelData.forEach(data => {
-                const sector = new THREE.Group();
-                sector.position.set(...data.pos);
-
-                const towerGeo = new THREE.ConeGeometry(1, 5, 4);
-                const towerMat = new THREE.MeshStandardMaterial({ color: data.color });
-                const tower = new THREE.Mesh(towerGeo, towerMat);
-                
-                // Point towers toward center
-                tower.lookAt(0,0,0);
-                tower.rotateX(Math.PI / 2);
-
-                tower.userData = data; // Attach data
-                sector.add(tower);
-                
-                // Add a small "glow" at the base
-                const glowGeo = new THREE.SphereGeometry(0.5, 8, 8);
-                const glowMat = new THREE.MeshBasicMaterial({ color: data.color, transparent: true, opacity: 0.5 });
-                const glow = new THREE.Mesh(glowGeo, glowMat);
-                sector.add(glow);
-
-                citadelGroup.add(sector);
-            });
+            // Citadel Structure
+            citadel = new THREE.Group();
+            
+            // Core
+            const core = new THREE.Mesh(
+                new THREE.OctahedronGeometry(4, 1),
+                new THREE.MeshPhongMaterial({ color: 0x222222, flatShading: true })
+            );
+            citadel.add(core);
 
             // Portal Ring
-            const ringGeo = new THREE.TorusGeometry(12, 0.1, 16, 100);
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff41 });
-            const ring = new THREE.Mesh(ringGeo, ringMat);
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(10, 0.05, 16, 100),
+                new THREE.MeshBasicMaterial({ color: 0x00ff41 })
+            );
             ring.rotation.x = Math.PI / 2;
-            citadelGroup.add(ring);
+            citadel.add(ring);
 
-            scene.add(citadelGroup);
+            // Add POIs (Spikes)
+            pointsOfInterest.forEach(poi => {
+                const group = new THREE.Group();
+                group.position.set(...poi.pos);
+                
+                const spike = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.8, 4, 6),
+                    new THREE.MeshPhongMaterial({ color: poi.color })
+                );
+                spike.lookAt(0,0,0);
+                spike.rotateX(Math.PI/2);
+                spike.userData = poi;
+
+                group.add(spike);
+                citadel.add(group);
+            });
+
+            scene.add(citadel);
 
             // Stars
             const starGeo = new THREE.BufferGeometry();
             const starPos = [];
-            for(let i=0; i<3000; i++) starPos.push((Math.random()-0.5)*400, (Math.random()-0.5)*400, (Math.random()-0.5)*400);
+            for(let i=0; i<2000; i++) starPos.push((Math.random()-0.5)*400, (Math.random()-0.5)*400, (Math.random()-0.5)*400);
             starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-            scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.5})));
+            scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({color: 0xffffff, size: 0.7})));
 
-            // 5. Interaction
-            window.addEventListener('click', onSelect);
-            window.addEventListener('resize', onResize);
-
+            // Hide loading
             document.getElementById('loading-screen').style.display = 'none';
+
+            window.addEventListener('click', onClick);
+            window.addEventListener('resize', onResize);
+            
+            animate();
         }
 
-        function onSelect(event) {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
+        function onClick(e) {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(citadelGroup.children, true);
+            const items = raycaster.intersectObjects(citadel.children, true);
 
-            if (intersects.length > 0) {
-                const clicked = intersects[0].object;
-                if (clicked.userData.name) {
-                    showData(clicked.userData, intersects[0].point);
+            if (items.length > 0) {
+                const obj = items[0].object;
+                if (obj.userData.name) {
+                    document.getElementById('data-panel').style.display = 'block';
+                    document.getElementById('title').innerText = obj.userData.name;
+                    document.getElementById('description').innerText = obj.userData.desc;
+                    
+                    // Zoom camera
+                    targetCamPos = items[0].point.clone().multiplyScalar(2);
+                    controls.target.copy(items[0].point);
                 }
             } else {
-                document.getElementById('info-card').style.display = 'none';
+                document.getElementById('data-panel').style.display = 'none';
             }
         }
 
-        function showData(info, targetPos) {
-            const card = document.getElementById('info-card');
-            document.getElementById('part-title').innerText = info.name;
-            document.getElementById('part-text').innerText = info.info;
-            card.style.display = 'block';
-
-            // Camera focus logic
-            const zoomPos = targetPos.clone().multiplyScalar(1.5);
-            cameraTarget = zoomPos;
-            controls.target.copy(targetPos);
-        }
-
-        let cameraTarget = null;
-
-        window.resetView = function() {
-            cameraTarget = new THREE.Vector3(20, 15, 25);
-            controls.target.set(0,0,0);
-            document.getElementById('info-card').style.display = 'none';
+        function resetView() {
+            targetCamPos = new THREE.Vector3(15, 12, 20);
+            controls.target.set(0, 0, 0);
+            document.getElementById('data-panel').style.display = 'none';
         }
 
         function onResize() {
@@ -233,15 +179,16 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            citadelGroup.rotation.y += 0.001;
-            
-            if (cameraTarget) {
-                camera.position.lerp(cameraTarget, 0.05);
+            citadel.rotation.y += 0.001;
+            if (targetCamPos) {
+                camera.position.lerp(targetCamPos, 0.05);
             }
-
             controls.update();
             renderer.render(scene, camera);
         }
+
+        // Start
+        window.onload = init;
     </script>
 </body>
 </html>
