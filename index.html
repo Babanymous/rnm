@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar System - Rick's Database</title>
+    <title>Rick's Multiverse Atlas</title>
     <style>
         * {
             margin: 0;
@@ -30,10 +30,10 @@
             top: 10px;
             left: 10px;
             background: rgba(0, 20, 0, 0.95);
-            border: 2px solid #00ff00;
+            border: 3px solid #00ff00;
             padding: 12px;
             font-size: 11px;
-            max-width: 320px;
+            max-width: 350px;
             z-index: 100;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
         }
@@ -42,21 +42,23 @@
             color: #00ffff;
             margin-bottom: 8px;
             text-shadow: 0 0 10px #00ffff;
-            font-size: 14px;
+            font-size: 15px;
+            letter-spacing: 1px;
         }
         
-        #celestial-info {
+        #dimension-info {
             margin-top: 8px;
             padding: 8px;
             background: rgba(0, 50, 0, 0.5);
             border-left: 3px solid #00ff00;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
         }
         
-        .celestial-label {
+        .dimension-label {
             color: #ffff00;
             font-weight: bold;
+            font-size: 12px;
         }
         
         .status {
@@ -74,7 +76,7 @@
             bottom: 10px;
             left: 10px;
             background: rgba(0, 20, 0, 0.95);
-            border: 2px solid #00ff00;
+            border: 3px solid #00ff00;
             padding: 10px;
             font-size: 10px;
             z-index: 100;
@@ -85,26 +87,42 @@
             top: 10px;
             right: 10px;
             background: rgba(0, 20, 0, 0.95);
-            border: 2px solid #00ff00;
+            border: 3px solid #00ff00;
             padding: 10px;
             z-index: 100;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .view-btn {
             background: rgba(0, 255, 0, 0.2);
-            border: 1px solid #00ff00;
+            border: 2px solid #00ff00;
             color: #00ff00;
             padding: 8px 12px;
-            margin: 3px;
+            margin: 3px 0;
             cursor: pointer;
             font-family: 'Courier New', monospace;
             font-size: 10px;
             transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .view-btn:hover {
+            background: rgba(0, 255, 0, 0.4);
         }
         
         .view-btn:active, .view-btn.active {
-            background: rgba(0, 255, 0, 0.5);
+            background: rgba(0, 255, 0, 0.6);
             box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+        }
+        
+        .category-header {
+            color: #00ffff;
+            font-weight: bold;
+            margin-top: 8px;
+            margin-bottom: 3px;
+            font-size: 11px;
         }
         
         .tooltip {
@@ -116,11 +134,11 @@
             pointer-events: none;
             display: none;
             z-index: 200;
-            max-width: 250px;
+            max-width: 280px;
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
         }
         
-        .type-tag {
+        .threat-tag {
             display: inline-block;
             padding: 2px 6px;
             margin-left: 5px;
@@ -129,20 +147,22 @@
             font-weight: bold;
         }
         
-        .type-star { background: #ffff00; color: #000; }
-        .type-planet { background: #0088ff; color: #fff; }
-        .type-moon { background: #aaaaaa; color: #000; }
-        .type-dwarf { background: #ff6600; color: #fff; }
+        .threat-safe { background: #00ff00; color: #000; }
+        .threat-low { background: #88ff00; color: #000; }
+        .threat-medium { background: #ffff00; color: #000; }
+        .threat-high { background: #ff6600; color: #000; }
+        .threat-extreme { background: #ff0000; color: #fff; }
+        .threat-unknown { background: #9900ff; color: #fff; }
         
         @media (max-width: 768px) {
             #hud {
                 font-size: 9px;
-                max-width: 220px;
+                max-width: 240px;
                 padding: 8px;
             }
             
             #hud h2 {
-                font-size: 11px;
+                font-size: 12px;
             }
             
             #controls {
@@ -153,18 +173,19 @@
             .view-btn {
                 padding: 6px 10px;
                 font-size: 9px;
-                margin: 2px;
+                margin: 2px 0;
             }
             
             #view-controls {
                 padding: 6px;
+                max-height: 70vh;
             }
         }
         
         @media (max-width: 480px) {
             #hud {
                 font-size: 8px;
-                max-width: 160px;
+                max-width: 170px;
                 padding: 6px;
             }
             
@@ -185,8 +206,25 @@
             
             .tooltip {
                 font-size: 8px;
-                max-width: 180px;
+                max-width: 200px;
             }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ffff;
         }
     </style>
 </head>
@@ -194,25 +232,38 @@
     <div id="canvas-container"></div>
     
     <div id="hud">
-        <h2>⚡ SOLAR SYSTEM DATABASE ⚡</h2>
-        <div>Status: <span class="status">ONLINE</span></div>
-        <div>Objects: <span id="obj-count">0</span></div>
-        <div>Portal Stability: <span class="status">98.7%</span></div>
-        <div>Current View: <span id="current-view">Overview</span></div>
-        <div id="celestial-info">
-            <div class="celestial-label">👆 Tap/Click any object</div>
-            <div style="font-size: 9px; margin-top: 5px; color: #00ffff;">
-                *burp* Don't touch Pluto, Morty. It's not even a real planet.
+        <h2>⚡ MULTIVERSE ATLAS ⚡</h2>
+        <div>Status: <span class="status">SCANNING</span></div>
+        <div>Dimensions: <span id="dim-count">0</span></div>
+        <div>Portal Stability: <span class="status">94.3%</span></div>
+        <div id="dimension-info">
+            <div class="dimension-label">👆 Select a dimension</div>
+            <div style="font-size: 9px; margin-top: 5px; color: #00ffff; font-style: italic;">
+                *burp* Infinite dimensions, Morty. Infinite possibilities.
             </div>
         </div>
     </div>
     
     <div id="view-controls">
-        <button class="view-btn active" onclick="setView('overview')">OVERVIEW</button><br>
-        <button class="view-btn" onclick="setView('inner')">INNER SYSTEM</button><br>
-        <button class="view-btn" onclick="setView('outer')">OUTER SYSTEM</button><br>
-        <button class="view-btn" onclick="resetCamera()">RESET VIEW</button><br>
-        <button class="view-btn" onclick="portalJump()" style="background: rgba(0, 255, 0, 0.3); margin-top: 10px;">🌀 PORTAL JUMP</button>
+        <div class="category-header">🎯 QUICK VIEWS</div>
+        <button class="view-btn active" onclick="setView('overview')">📍 FULL MAP</button>
+        <button class="view-btn" onclick="setView('central')">🏛️ CENTRAL CITADEL</button>
+        <button class="view-btn" onclick="setView('earth')">🌍 EARTH CLUSTER</button>
+        <button class="view-btn" onclick="setView('danger')">⚠️ DANGER ZONES</button>
+        
+        <div class="category-header">🌀 PORTAL TRAVEL</div>
+        <button class="view-btn" onclick="portalJump()">🌀 RANDOM JUMP</button>
+        <button class="view-btn" onclick="goToDimension('citadel')">🏛️ CITADEL</button>
+        <button class="view-btn" onclick="goToDimension('c137')">🔴 C-137</button>
+        <button class="view-btn" onclick="goToDimension('replacement')">🟢 HOME</button>
+        
+        <div class="category-header">🔍 FILTERS</div>
+        <button class="view-btn" onclick="filterThreat('extreme')">🔴 EXTREME</button>
+        <button class="view-btn" onclick="filterThreat('high')">🟠 HIGH</button>
+        <button class="view-btn" onclick="filterThreat('all')">⚪ SHOW ALL</button>
+        
+        <div class="category-header">⚙️</div>
+        <button class="view-btn" onclick="resetCamera()">🔄 RESET VIEW</button>
     </div>
     
     <div id="controls">
@@ -231,159 +282,537 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Solar System data with major moons
-        const solarSystemData = {
-            sun: {
-                name: "Sun",
-                type: "star",
-                radius: 3.0,
-                color: 0xffff00,
+        // Complete Rick and Morty Multiverse Data
+        const multiverseData = [
+            // EARTH DIMENSIONS
+            {
+                id: 'c137',
+                name: "Dimension C-137",
+                designation: "C-137",
+                type: "Earth Dimension",
+                threat: "extreme",
+                color: 0xff0000,
                 position: [0, 0, 0],
-                info: "G-type main-sequence star. Powers the entire solar system.",
-                facts: ["Mass: 1.989 × 10^30 kg", "Temperature: 5,778 K", "Age: 4.6 billion years"]
+                size: 1.4,
+                description: "Rick's original dimension. Completely Cronenberged after failed love potion.",
+                features: ["Abandoned", "Cronenberg Monsters", "Original Rick's Home"],
+                rickComment: "*burp* My original dimension, Morty. We Cronenberged it real good."
             },
-            planets: [
-                {
-                    name: "Mercury",
-                    type: "planet",
-                    radius: 0.38,
-                    color: 0x8c7853,
-                    distance: 8,
-                    orbitSpeed: 0.024,
-                    info: "Smallest planet. Closest to the Sun.",
-                    facts: ["No moons", "No atmosphere", "Day length: 59 Earth days"],
-                    moons: []
-                },
-                {
-                    name: "Venus",
-                    type: "planet",
-                    radius: 0.95,
-                    color: 0xffc649,
-                    distance: 12,
-                    orbitSpeed: 0.015,
-                    info: "Hottest planet. Thick toxic atmosphere.",
-                    facts: ["No moons", "Toxic atmosphere", "Rotates backwards"],
-                    moons: []
-                },
-                {
-                    name: "Earth",
-                    type: "planet",
-                    radius: 1.0,
-                    color: 0x0077be,
-                    distance: 16,
-                    orbitSpeed: 0.01,
-                    info: "Our home planet. Only known planet with life.",
-                    facts: ["1 moon", "71% water coverage", "Supports life"],
-                    moons: [
-                        { name: "Moon", radius: 0.27, distance: 1.5, color: 0xaaaaaa, info: "Earth's only natural satellite" }
-                    ]
-                },
-                {
-                    name: "Mars",
-                    type: "planet",
-                    radius: 0.53,
-                    color: 0xcd5c5c,
-                    distance: 20,
-                    orbitSpeed: 0.008,
-                    info: "The Red Planet. Target for human colonization.",
-                    facts: ["2 moons", "Largest volcano in solar system", "Polar ice caps"],
-                    moons: [
-                        { name: "Phobos", radius: 0.12, distance: 0.8, color: 0x999999, info: "Larger moon of Mars" },
-                        { name: "Deimos", radius: 0.08, distance: 1.2, color: 0x888888, info: "Smaller moon of Mars" }
-                    ]
-                },
-                {
-                    name: "Jupiter",
-                    type: "planet",
-                    radius: 2.2,
-                    color: 0xdaa520,
-                    distance: 32,
-                    orbitSpeed: 0.004,
-                    info: "Largest planet. Gas giant with Great Red Spot.",
-                    facts: ["95+ moons", "Strongest magnetic field", "Could fit 1,300 Earths"],
-                    moons: [
-                        { name: "Io", radius: 0.28, distance: 3.0, color: 0xffaa00, info: "Most volcanically active body" },
-                        { name: "Europa", radius: 0.24, distance: 3.8, color: 0xccddff, info: "Subsurface ocean, potential life" },
-                        { name: "Ganymede", radius: 0.41, distance: 4.6, color: 0xaaaaaa, info: "Largest moon in solar system" },
-                        { name: "Callisto", radius: 0.37, distance: 5.4, color: 0x8b7355, info: "Heavily cratered surface" }
-                    ]
-                },
-                {
-                    name: "Saturn",
-                    type: "planet",
-                    radius: 1.8,
-                    color: 0xfad5a5,
-                    distance: 48,
-                    orbitSpeed: 0.003,
-                    info: "Gas giant with spectacular ring system.",
-                    facts: ["146+ moons", "Iconic rings", "Least dense planet"],
-                    moons: [
-                        { name: "Titan", radius: 0.40, distance: 4.5, color: 0xff9944, info: "Only moon with dense atmosphere" },
-                        { name: "Rhea", radius: 0.12, distance: 3.2, color: 0xcccccc, info: "Second largest moon of Saturn" },
-                        { name: "Iapetus", radius: 0.11, distance: 5.8, color: 0x888888, info: "Two-toned coloration" },
-                        { name: "Dione", radius: 0.09, distance: 2.8, color: 0xbbbbbb, info: "Icy surface with cliffs" },
-                        { name: "Tethys", radius: 0.08, distance: 2.2, color: 0xdddddd, info: "Heavily cratered" },
-                        { name: "Enceladus", radius: 0.04, distance: 1.8, color: 0xffffff, info: "Water geysers, potential life" },
-                        { name: "Mimas", radius: 0.03, distance: 1.4, color: 0xaaaaaa, info: "Death Star lookalike" }
-                    ]
-                },
-                {
-                    name: "Uranus",
-                    type: "planet",
-                    radius: 1.3,
-                    color: 0x4fd0e0,
-                    distance: 64,
-                    orbitSpeed: 0.002,
-                    info: "Ice giant. Rotates on its side.",
-                    facts: ["27+ moons", "Rotates sideways", "Methane atmosphere"],
-                    moons: [
-                        { name: "Titania", radius: 0.12, distance: 2.8, color: 0xaaaaaa, info: "Largest moon of Uranus" },
-                        { name: "Oberon", radius: 0.11, distance: 3.4, color: 0x999999, info: "Heavily cratered" },
-                        { name: "Umbriel", radius: 0.09, distance: 2.0, color: 0x777777, info: "Darkest moon" },
-                        { name: "Ariel", radius: 0.09, distance: 1.6, color: 0xbbbbbb, info: "Brightest surface" },
-                        { name: "Miranda", radius: 0.04, distance: 1.2, color: 0xcccccc, info: "Bizarre patchwork surface" }
-                    ]
-                },
-                {
-                    name: "Neptune",
-                    type: "planet",
-                    radius: 1.2,
-                    color: 0x4169e1,
-                    distance: 80,
-                    orbitSpeed: 0.001,
-                    info: "Farthest major planet. Fastest winds in solar system.",
-                    facts: ["14+ moons", "Great Dark Spot", "Supersonic winds"],
-                    moons: [
-                        { name: "Triton", radius: 0.21, distance: 2.8, color: 0xffbbdd, info: "Largest moon, retrograde orbit" },
-                        { name: "Proteus", radius: 0.08, distance: 3.5, color: 0x888888, info: "Irregular shape" },
-                        { name: "Nereid", radius: 0.03, distance: 5.0, color: 0xaaaaaa, info: "Highly eccentric orbit" }
-                    ]
-                }
-            ],
-            dwarfPlanets: [
-                {
-                    name: "Pluto",
-                    type: "dwarf",
-                    radius: 0.18,
-                    color: 0xc4a582,
-                    distance: 96,
-                    orbitSpeed: 0.0008,
-                    info: "Former 9th planet. Dwarf planet in Kuiper Belt.",
-                    facts: ["5 moons", "Heart-shaped region", "Still a planet to some"],
-                    moons: [
-                        { name: "Charon", radius: 0.095, distance: 0.9, color: 0xaaaaaa, info: "Half the size of Pluto" }
-                    ]
-                }
-            ]
-        };
+            {
+                id: 'replacement',
+                name: "Replacement Dimension",
+                designation: "Unknown",
+                type: "Earth Dimension",
+                threat: "medium",
+                color: 0x00ff00,
+                position: [4, 2, 3],
+                size: 1.3,
+                description: "Current home of Rick C-137 and Morty. They replaced their dead counterparts.",
+                features: ["Current Home", "Dead Rick & Morty Buried in Backyard", "Smith Family"],
+                rickComment: "This is home now, Morty. Try not to think about the bodies in the backyard."
+            },
+            {
+                id: 'cronenberg',
+                name: "Cronenberg World",
+                designation: "Cron-1",
+                type: "Earth Dimension",
+                threat: "extreme",
+                color: 0x884444,
+                position: [-3, -4, 2],
+                size: 1.2,
+                description: "Multiple dimensions where love potions went horribly wrong.",
+                features: ["Body Horror", "Failed Love Potion", "Cronenberg Monsters"],
+                rickComment: "We've Cronenberged a few worlds, Morty. Happens to the best of us. *burp*"
+            },
+            {
+                id: 'fascist',
+                name: "Fascist Dimension",
+                designation: "Unknown",
+                type: "Earth Dimension",
+                threat: "extreme",
+                color: 0x880000,
+                position: [-6, 1, -4],
+                size: 1.2,
+                description: "Totalitarian dimension controlled by Fascist Morty.",
+                features: ["Fascist Morty", "Militarized", "Eye Patch Morty"],
+                rickComment: "Evil Morty's dimension. That kid's got ambition. And issues."
+            },
+            {
+                id: 'pickle',
+                name: "Pickle Rick Dimension",
+                designation: "C-132",
+                type: "Earth Dimension",
+                threat: "low",
+                color: 0x00ff66,
+                position: [3, -2, -5],
+                size: 1.0,
+                description: "Where Rick turned himself into a pickle to avoid family therapy.",
+                features: ["Pickle Rick", "Rat Sewer Battle", "Jaguar Encounter"],
+                rickComment: "I'm Pickle Riiick! *burp* Greatest moment of my life, Morty."
+            },
+            {
+                id: 'jerryd99',
+                name: "Successful Jerry Dimension",
+                designation: "D-99",
+                type: "Earth Dimension",
+                threat: "safe",
+                color: 0xff6699,
+                position: [-2, 4, 5],
+                size: 0.9,
+                description: "Statistical anomaly where Jerry is successful and confident.",
+                features: ["Successful Jerry", "Doofus Rick", "Statistical Impossibility"],
+                rickComment: "Jerry being successful? That's like... scientifically improbable."
+            },
+            
+            // CITADEL & GOVERNMENT
+            {
+                id: 'citadel',
+                name: "The Citadel",
+                designation: "Citadel",
+                type: "Government",
+                threat: "high",
+                color: 0xffaa00,
+                position: [-5, 3, -1],
+                size: 1.8,
+                description: "Governmental center of the multiverse. Home to thousands of Ricks and Mortys.",
+                features: ["Council of Ricks", "Simple Rick's", "Mortytown", "Evil Morty's Rise"],
+                rickComment: "The Citadel. Where Ricks go to become sheep. Baaa. *burp*"
+            },
+            {
+                id: 'customs',
+                name: "Interdimensional Customs",
+                designation: "Customs",
+                type: "Government",
+                threat: "medium",
+                color: 0x666666,
+                position: [0, 5, 1],
+                size: 1.4,
+                description: "Bureaucratic checkpoint between major dimensional clusters.",
+                features: ["Customs Agents", "Megaseeds Illegal", "Bureaucracy"],
+                rickComment: "Customs. Because even infinite dimensions need paperwork. *burp*"
+            },
+            {
+                id: 'federation',
+                name: "Galactic Federation HQ",
+                designation: "Fed-1",
+                type: "Government",
+                threat: "low",
+                color: 0x0066ff,
+                position: [7, -1, 0],
+                size: 1.5,
+                description: "Former galactic government. Collapsed after Rick destroyed their economy.",
+                features: ["Post-Collapse", "Birdperson's Capture", "Rick Destroyed It"],
+                rickComment: "The Federation? I made their currency worthless. You're welcome."
+            },
+            
+            // ALIEN WORLDS
+            {
+                id: 'birdworld',
+                name: "Bird World",
+                designation: "Bird-1",
+                type: "Alien World",
+                threat: "high",
+                color: 0x00aa88,
+                position: [8, 1, 3],
+                size: 1.3,
+                description: "Birdperson's home planet. Site of the tragic wedding massacre.",
+                features: ["Birdperson/Phoenixperson", "Tammy's Betrayal", "Wedding Massacre"],
+                rickComment: "Bird World. *burp* Tammy ruined my best friend's wedding there. Tammy sucks."
+            },
+            {
+                id: 'gazorpazorp',
+                name: "Gazorpazorp",
+                designation: "Gazorp",
+                type: "Alien World",
+                threat: "high",
+                color: 0xff3399,
+                position: [-6, -3, -3],
+                size: 1.3,
+                description: "Matriarchal society. Males are violent and primitive.",
+                features: ["Matriarchy", "Morty Jr.", "Sex Robot Origins", "Violent Males"],
+                rickComment: "Planet of sexy female overlords and violent idiot males. Morty loved it."
+            },
+            {
+                id: 'purgeplanet',
+                name: "Purge Planet",
+                designation: "Unknown",
+                type: "Alien World",
+                threat: "extreme",
+                color: 0xff0066,
+                position: [-7, 2, -2],
+                size: 1.2,
+                description: "Planet with annual purge festival. Extreme violence 24 hours a year.",
+                features: ["Annual Purge", "Lighthouse Incident", "Extreme Violence"],
+                rickComment: "Purge Planet. One day a year they just... go nuts. We fit right in. *burp*"
+            },
+            {
+                id: 'gearworld',
+                name: "Gear World",
+                designation: "Gear",
+                type: "Alien World",
+                threat: "safe",
+                color: 0xcccccc,
+                position: [4, -3, 3],
+                size: 1.0,
+                description: "Dimension of sentient mechanical beings. Gearhead's home.",
+                features: ["Gear People", "Revolio Clockberg Jr.", "Mechanical Life"],
+                rickComment: "Gear World. Everyone's a gear. It's actually pretty cool. Except Gearhead."
+            },
+            {
+                id: 'unity',
+                name: "Unity's Planet",
+                designation: "Unknown",
+                type: "Alien World",
+                threat: "medium",
+                color: 0x9966ff,
+                position: [5, -4, -1],
+                size: 1.4,
+                description: "Planet controlled by hivemind entity Unity. Rick's ex-girlfriend.",
+                features: ["Hivemind Unity", "Rick's Ex", "Total Assimilation", "Giraffe Incident"],
+                rickComment: "Unity. We had something special, Morty. *burp* She's literally everyone."
+            },
+            {
+                id: 'squanch',
+                name: "Planet Squanch",
+                designation: "Squanch",
+                type: "Alien World",
+                threat: "safe",
+                color: 0xff9966,
+                position: [2, -5, 0],
+                size: 1.1,
+                description: "Squanchy's home planet. Heavy partying culture.",
+                features: ["Squanchy's Home", "Party Planet", "Squanch Language"],
+                rickComment: "Planet Squanch. Where squanching is a way of squanch. You squanch?"
+            },
+            {
+                id: 'zigerion',
+                name: "Zigerion Homeworld",
+                designation: "Unknown",
+                type: "Alien World",
+                threat: "low",
+                color: 0xff6600,
+                position: [-4, 5, 1],
+                size: 0.9,
+                description: "Home of scammer aliens who tried to steal portal formula.",
+                features: ["Zigerion Scammers", "Simulation Obsessed", "Nudity Culture", "Prince of Persuasia"],
+                rickComment: "Zigerions. Scammers who thought they could outsmart me. In a simulation. *burp*"
+            },
+            {
+                id: 'pluto',
+                name: "Pluto",
+                designation: "Pluto",
+                type: "Alien World",
+                threat: "low",
+                color: 0x8888ff,
+                position: [7, 3, -4],
+                size: 1.0,
+                description: "Mining colony. Still believes it's a planet despite scientific consensus.",
+                features: ["Plutonium Mining", "Planet Denial", "Scroopy Noopers", "Morty's Fame"],
+                rickComment: "Pluto. NOT a planet, Morty! I don't care what those miners say!"
+            },
+            
+            // POCKET DIMENSIONS & SPECIAL LOCATIONS
+            {
+                id: 'froopyland',
+                name: "Froopyland",
+                designation: "Froopy",
+                type: "Pocket Dimension",
+                threat: "high",
+                color: 0xff99ff,
+                position: [-1, -3, -3],
+                size: 0.8,
+                description: "Pocket dimension created by Rick for young Beth's imaginary friend.",
+                features: ["Beth's Creation", "Cannibalistic Tommy", "Imaginary Land Made Real"],
+                rickComment: "Made this for Beth when she was a kid. *burp* Tommy got... creative."
+            },
+            {
+                id: 'microverse',
+                name: "Microverse Battery",
+                designation: "Microverse",
+                type: "Pocket Dimension",
+                threat: "medium",
+                color: 0xff9900,
+                position: [-3, -5, 4],
+                size: 0.7,
+                description: "Miniature universe inside Rick's car battery. Powers his ship.",
+                features: ["Miniverse Inside", "Teenyverse Inside That", "Slavery with Extra Steps"],
+                rickComment: "My car battery. It's a universe, Morty. Slavery with extra steps. *burp*"
+            },
+            {
+                id: 'anatomypark',
+                name: "Anatomy Park",
+                designation: "Unknown",
+                type: "Pocket Dimension",
+                threat: "medium",
+                color: 0xff3300,
+                position: [4, 3, -4],
+                size: 0.6,
+                description: "Miniaturized theme park inside a homeless man's body.",
+                features: ["Inside Ruben", "Miniaturization Tech", "Pirates of the Pancreas"],
+                rickComment: "Anatomy Park! Built it inside a hobo. He died. Park's closed now. *burp*"
+            },
+            {
+                id: 'jerryboree',
+                name: "Jerryboree",
+                designation: "Jerry-Care",
+                type: "Pocket Dimension",
+                threat: "safe",
+                color: 0xffcc99,
+                position: [3, 6, -1],
+                size: 1.0,
+                description: "Daycare facility for Jerrys from across infinite dimensions.",
+                features: ["Jerry Daycare", "Infinite Jerrys", "Ticket System", "Jerry Swap"],
+                rickComment: "Jerryboree. Where we dump Jerry when we go on adventures. *burp*"
+            },
+            {
+                id: 'blender',
+                name: "Blender Dimension",
+                designation: "5-126",
+                type: "Pocket Dimension",
+                threat: "extreme",
+                color: 0x990099,
+                position: [-5, -4, 2],
+                size: 1.0,
+                description: "Dimension consisting entirely of blended matter. Constant screaming.",
+                features: ["Everything Blended", "Constant Screaming", "DO NOT ENTER"],
+                rickComment: "Blender Dimension. Everything's blended. Everyone's screaming. Don't go there."
+            },
+            
+            // BIZARRE DIMENSIONS
+            {
+                id: 'pizzaphone',
+                name: "Pizza Phone Dimension",
+                designation: "35-C",
+                type: "Bizarre",
+                threat: "safe",
+                color: 0xff00ff,
+                position: [-4, -2, 3],
+                size: 0.9,
+                description: "Dimension where pizza is used as phones and phones are eaten.",
+                features: ["Pizza Phones", "Phone Food", "Harmless Oddity"],
+                rickComment: "Pizza phone dimension. Phones are food, pizza is communication. Makes sense."
+            },
+            {
+                id: 'chairpeople',
+                name: "Chair People Dimension",
+                designation: "C-500A",
+                type: "Bizarre",
+                threat: "medium",
+                color: 0xffff00,
+                position: [6, 0, -3],
+                size: 0.9,
+                description: "People are chairs and chairs are people. Existentially disturbing.",
+                features: ["Chair People", "People Chairs", "Existential Crisis"],
+                rickComment: "Chair people. Sit on people, people sit. It's weird, Morty."
+            },
+            {
+                id: 'hamsterbutt',
+                name: "Hamster in Butt World",
+                designation: "Unknown",
+                type: "Bizarre",
+                threat: "safe",
+                color: 0xaa6600,
+                position: [2, -4, -2],
+                size: 0.8,
+                description: "Humans have hamsters living in their rectums. Symbiotic relationship.",
+                features: ["Hamsters in Butts", "Symbiotic", "Surprisingly Normal"],
+                rickComment: "Everyone's got hamsters in their butts. They seem fine with it. *burp*"
+            },
+            {
+                id: 'shrimpcolors',
+                name: "Shrimp Colors Dimension",
+                designation: "Unknown",
+                type: "Bizarre",
+                threat: "safe",
+                color: 0xff00aa,
+                position: [6, 5, 2],
+                size: 0.8,
+                description: "Beings see 16 primary colors like mantis shrimp. Incomprehensible to humans.",
+                features: ["16 Primary Colors", "Mantis Shrimp Vision", "Incomprehensible Hues"],
+                rickComment: "They see colors we can't even imagine, Morty. Like... blurple. *burp*"
+            },
+            {
+                id: 'giants',
+                name: "Giant Dimension",
+                designation: "Giant",
+                type: "Bizarre",
+                threat: "medium",
+                color: 0xaa88ff,
+                position: [-8, 2, 0],
+                size: 1.6,
+                description: "Everything is giant-sized. People, objects, problems.",
+                features: ["Giant Everything", "Scale Anomaly", "Big Problems"],
+                rickComment: "Giant dimension. Everything's big. Including the egos."
+            },
+            {
+                id: 'doofus',
+                name: "Doofus Rick Dimension",
+                designation: "J19ζ7",
+                type: "Bizarre",
+                threat: "safe",
+                color: 0x00aaff,
+                position: [3, -3, 4],
+                size: 1.0,
+                description: "Rick developed technology without weapons. Eats his own poop.",
+                features: ["Doofus Rick", "Peaceful Tech", "Ovenless Brownies", "Eats Poop"],
+                rickComment: "Doofus Rick's dimension. They eat poop there. He's actually pretty smart though."
+            },
+            
+            // STORY-SPECIFIC LOCATIONS
+            {
+                id: 'vindicators',
+                name: "Vindicators HQ",
+                designation: "Vindi-1",
+                type: "Hero World",
+                threat: "medium",
+                color: 0x0099ff,
+                position: [5, -5, 3],
+                size: 1.2,
+                description: "Home base of the Vindicators superhero team.",
+                features: ["Superhero Team", "Drunk Rick's Traps", "Million Ants Died"],
+                rickComment: "Vindicators. Bunch of knockoff Avengers. I SAW TRAP laid death traps for them drunk."
+            },
+            {
+                id: 'atlantis',
+                name: "Atlantis",
+                designation: "Atlant",
+                type: "Hidden World",
+                threat: "safe",
+                color: 0x0066aa,
+                position: [-2, 6, 4],
+                size: 1.1,
+                description: "Underwater civilization. Technologically advanced but extremely petty.",
+                features: ["Underwater City", "Mer-People", "Rick Hates Them", "Heist"],
+                rickComment: "Atlantis. *burp* Bunch of pretentious fish people. They suck."
+            },
+            {
+                id: 'deathcrystal',
+                name: "Death Crystal Dimension",
+                designation: "D-Cry",
+                type: "Mystic",
+                threat: "high",
+                color: 0xff0099,
+                position: [-6, -5, 5],
+                size: 0.9,
+                description: "Source of death crystals showing infinite death possibilities.",
+                features: ["Death Crystals", "Akira Slide", "Infinite Death Timelines"],
+                rickComment: "Death crystals. Show you how you die. Morty got obsessed. Bad times. *burp*"
+            },
+            {
+                id: 'storytrain',
+                name: "Story Train",
+                designation: "Story",
+                type: "Meta",
+                threat: "medium",
+                color: 0x9999ff,
+                position: [7, -4, -2],
+                size: 1.0,
+                description: "Literal narrative-driven dimension with story structure.",
+                features: ["Meta-Narrative", "Story Lord", "Anthology Episodes"],
+                rickComment: "Story Train. It's all meta and annoying. Like this conversation. *burp*"
+            },
+            {
+                id: 'heistcon',
+                name: "Heist-Con",
+                designation: "Heist",
+                type: "Convention",
+                threat: "safe",
+                color: 0xff6633,
+                position: [8, 4, -1],
+                size: 0.9,
+                description: "Annual convention for heist enthusiasts across the multiverse.",
+                features: ["Heist Culture", "Randotron", "Mr. Poopybutthole Attends"],
+                rickComment: "Heist-Con. Where losers celebrate convoluted plans. *burp* I hate heists."
+            },
+            {
+                id: 'interdimcable',
+                name: "Interdimensional Cable Hub",
+                designation: "IC-Prime",
+                type: "Media Center",
+                threat: "safe",
+                color: 0xaa00aa,
+                position: [4, 4, 5],
+                size: 0.8,
+                description: "Source of infinite TV channels from across dimensions.",
+                features: ["Infinite TV", "Ball Fondlers", "Ants in My Eyes Johnson"],
+                rickComment: "Interdimensional cable. Infinite channels of garbage. I love it. *burp*"
+            },
+            
+            // DANGER ZONES
+            {
+                id: 'testicle',
+                name: "Testicle Monster Dimension",
+                designation: "Unknown",
+                type: "Danger Zone",
+                threat: "extreme",
+                color: 0xcc6699,
+                position: [-4, -6, -1],
+                size: 1.0,
+                description: "Hostile dimension populated by aggressive testicle monsters.",
+                features: ["Testicle Monsters", "Extremely Hostile", "Bizarre Biology"],
+                rickComment: "Testicle monsters everywhere. We don't go there anymore. *burp*"
+            },
+            {
+                id: 'worldender',
+                name: "Worldender's Lair",
+                designation: "W-End",
+                type: "Danger Zone",
+                threat: "low",
+                color: 0x666699,
+                position: [-5, 6, 2],
+                size: 0.9,
+                description: "Former domain of Worldender. Now abandoned after Vindicators mission.",
+                features: ["Post-Worldender", "Abandoned", "Drunk Rick Won"],
+                rickComment: "Worldender's place. I killed him while blackout drunk. Classic me. *burp*"
+            },
+            {
+                id: 'timefrozen',
+                name: "Time-Frozen Dimension",
+                designation: "K-83",
+                type: "Anomaly",
+                threat: "high",
+                color: 0x00ffff,
+                position: [5, 3, 1],
+                size: 1.0,
+                description: "Dimension with severe temporal anomalies and frozen entities.",
+                features: ["Time Frozen", "Temporal Anomalies", "Dangerous Physics"],
+                rickComment: "Time doesn't work right there. Everything's frozen. Except it's not. *burp*"
+            },
+            {
+                id: 'vat',
+                name: "Fake Vat of Acid",
+                designation: "Acid",
+                type: "Memory",
+                threat: "safe",
+                color: 0x99ff00,
+                position: [7, -5, -4],
+                size: 0.7,
+                description: "Location of Rick's fake vat of acid that saved their lives.",
+                features: ["Fake Acid", "Morty's Save Device", "Morty's Girlfriends"],
+                rickComment: "The vat was real, Morty! You just didn't believe in it! *burp*"
+            },
+            {
+                id: 'mindblowers',
+                name: "Morty's Mind Blowers Storage",
+                designation: "Memory",
+                type: "Storage",
+                threat: "medium",
+                color: 0xff66ff,
+                position: [6, -3, -5],
+                size: 0.8,
+                description: "Where erased memories are stored. Contains dangerous truths.",
+                features: ["Memory Storage", "Truth Serum Incident", "Squirrel Truth"],
+                rickComment: "Your mind blowers, Morty. Memories too traumatic to keep. *burp*"
+            }
+        ];
         
         // Scene setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000510);
-        scene.fog = new THREE.Fog(0x000510, 50, 200);
+        scene.fog = new THREE.Fog(0x000510, 30, 150);
         
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
-        camera.position.set(0, 40, 80);
+        camera.position.set(0, 25, 50);
         camera.lookAt(0, 0, 0);
         
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -391,36 +820,40 @@
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         
         // Lighting
-        const sunLight = new THREE.PointLight(0xffff00, 2, 300);
-        sunLight.position.set(0, 0, 0);
-        scene.add(sunLight);
-        
-        const ambientLight = new THREE.AmbientLight(0x1a1a2e, 0.3);
+        const ambientLight = new THREE.AmbientLight(0x1a1a2e, 0.4);
         scene.add(ambientLight);
+        
+        const greenLight = new THREE.PointLight(0x00ff00, 1.5, 100);
+        greenLight.position.set(0, 20, 20);
+        scene.add(greenLight);
+        
+        const cyanLight = new THREE.PointLight(0x00ffff, 1, 80);
+        cyanLight.position.set(-20, -10, 20);
+        scene.add(cyanLight);
         
         // Create starfield
         const starGeometry = new THREE.BufferGeometry();
         const starVertices = [];
         const starColors = [];
-        for (let i = 0; i < 5000; i++) {
-            const x = (Math.random() - 0.5) * 400;
-            const y = (Math.random() - 0.5) * 400;
-            const z = (Math.random() - 0.5) * 400;
+        for (let i = 0; i < 6000; i++) {
+            const x = (Math.random() - 0.5) * 500;
+            const y = (Math.random() - 0.5) * 500;
+            const z = (Math.random() - 0.5) * 500;
             starVertices.push(x, y, z);
             
             const colorChoice = Math.random();
-            if (colorChoice < 0.7) {
+            if (colorChoice < 0.6) {
                 starColors.push(1, 1, 1);
-            } else if (colorChoice < 0.85) {
-                starColors.push(0.5, 0.8, 1);
+            } else if (colorChoice < 0.8) {
+                starColors.push(0.3, 1, 1);
             } else {
-                starColors.push(0.3, 1, 0.7);
+                starColors.push(0.3, 1, 0.5);
             }
         }
         starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
         starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
         const starMaterial = new THREE.PointsMaterial({ 
-            size: 0.2,
+            size: 0.3,
             vertexColors: true,
             transparent: true,
             opacity: 0.9
@@ -428,258 +861,134 @@
         const stars = new THREE.Points(starGeometry, starMaterial);
         scene.add(stars);
         
-        // Create celestial objects
-        const celestialObjects = [];
-        const orbitLines = [];
-        let objectCount = 0;
+        // Create dimensions
+        const dimensionObjects = [];
+        const dimensionMap = new Map();
+        let hiddenDimensions = new Set();
         
-        // Create Sun - Rick and Morty style
-        const sunGroup = new THREE.Group();
-        const sunGeometry = new THREE.SphereGeometry(solarSystemData.sun.radius, 32, 32);
-        const sunMaterial = new THREE.MeshBasicMaterial({
-            color: solarSystemData.sun.color,
-            emissive: solarSystemData.sun.color,
-            emissiveIntensity: 1
-        });
-        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-        sun.userData = solarSystemData.sun;
-        
-        // Multiple glowing layers for Rick and Morty sun effect
-        for (let i = 1; i <= 3; i++) {
-            const glowGeometry = new THREE.SphereGeometry(solarSystemData.sun.radius * (1 + i * 0.2), 32, 32);
-            const glowMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffff00,
-                transparent: true,
-                opacity: 0.3 / i,
-                side: THREE.BackSide
-            });
-            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-            glow.userData.glowLayer = i;
-            sun.add(glow);
-        }
-        
-        // Add energy particles around sun
-        for (let i = 0; i < 12; i++) {
-            const angle = (i / 12) * Math.PI * 2;
-            const particleGeometry = new THREE.SphereGeometry(0.15, 8, 8);
-            const particleMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffaa00,
-                transparent: true,
-                opacity: 0.8
-            });
-            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-            const radius = solarSystemData.sun.radius * 1.3;
-            particle.position.x = Math.cos(angle) * radius;
-            particle.position.y = Math.sin(angle) * radius;
-            particle.userData.sunParticle = true;
-            particle.userData.angle = angle;
-            particle.userData.radius = radius;
-            particle.userData.speed = 0.02 + Math.random() * 0.02;
-            sun.add(particle);
-        }
-        
-        sunGroup.add(sun);
-        scene.add(sunGroup);
-        celestialObjects.push(sunGroup);
-        objectCount++;
-        
-        // Create planets with moons - Rick and Morty toon style (like the reference image)
-        solarSystemData.planets.forEach(planetData => {
-            const planetGroup = new THREE.Group();
+        multiverseData.forEach(dimData => {
+            const group = new THREE.Group();
             
-            // Create orbit line - simple dashed green line
-            const orbitGeometry = new THREE.BufferGeometry();
-            const orbitPoints = [];
-            for (let i = 0; i <= 64; i++) {
-                const angle = (i / 64) * Math.PI * 2;
-                orbitPoints.push(
-                    Math.cos(angle) * planetData.distance,
-                    0,
-                    Math.sin(angle) * planetData.distance
-                );
-            }
-            orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitPoints, 3));
-            const orbitMaterial = new THREE.LineDashedMaterial({
-                color: 0x00ff00,
-                transparent: true,
-                opacity: 0.4,
-                dashSize: 0.5,
-                gapSize: 0.3
+            // Create dimension sphere with toon shading
+            const geometry = new THREE.SphereGeometry(dimData.size, 32, 32);
+            const material = new THREE.MeshToonMaterial({
+                color: dimData.color,
+                emissive: dimData.color,
+                emissiveIntensity: 0.2
             });
-            const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
-            orbitLine.computeLineDistances();
-            orbitLine.userData.orbit = true;
-            scene.add(orbitLine);
-            orbitLines.push(orbitLine);
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.userData = dimData;
+            sphere.position.set(...dimData.position);
             
-            // Create planet with simple toon shader
-            const planetGeometry = new THREE.SphereGeometry(planetData.radius, 32, 32);
-            const planetMaterial = new THREE.MeshToonMaterial({
-                color: planetData.color,
-                emissive: planetData.color,
-                emissiveIntensity: 0.15
-            });
-            const planet = new THREE.Mesh(planetGeometry, planetMaterial);
-            planet.userData = planetData;
-            planet.userData.orbitDistance = planetData.distance;
-            planet.userData.orbitSpeed = planetData.orbitSpeed;
-            planet.userData.orbitAngle = Math.random() * Math.PI * 2;
-            
-            // Thick black outline for cartoon effect (like in the image)
-            const outlineGeometry = new THREE.SphereGeometry(planetData.radius * 1.12, 32, 32);
+            // Thick black outline
+            const outlineGeometry = new THREE.SphereGeometry(dimData.size * 1.12, 32, 32);
             const outlineMaterial = new THREE.MeshBasicMaterial({
                 color: 0x000000,
                 side: THREE.BackSide
             });
             const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
-            planet.add(outline);
+            sphere.add(outline);
             
-            planetGroup.add(planet);
-            scene.add(planetGroup);
-            celestialObjects.push(planetGroup);
-            objectCount++;
+            // Label
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
             
-            // Create moons with simple toon style
-            planetData.moons.forEach(moonData => {
-                const moonGroup = new THREE.Group();
-                
-                const moonGeometry = new THREE.SphereGeometry(moonData.radius, 20, 20);
-                const moonMaterial = new THREE.MeshToonMaterial({
-                    color: moonData.color,
-                    emissive: moonData.color,
-                    emissiveIntensity: 0.1
-                });
-                const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-                moon.userData = moonData;
-                moon.userData.type = 'moon';
-                moon.userData.orbitDistance = moonData.distance;
-                moon.userData.orbitSpeed = 0.02;
-                moon.userData.orbitAngle = Math.random() * Math.PI * 2;
-                moon.userData.parent = planet;
-                
-                const moonOutlineGeometry = new THREE.SphereGeometry(moonData.radius * 1.12, 20, 20);
-                const moonOutlineMaterial = new THREE.MeshBasicMaterial({
-                    color: 0x000000,
-                    side: THREE.BackSide
-                });
-                const moonOutline = new THREE.Mesh(moonOutlineGeometry, moonOutlineMaterial);
-                moon.add(moonOutline);
-                
-                moonGroup.add(moon);
-                planetGroup.add(moonGroup);
-                celestialObjects.push(moonGroup);
-                objectCount++;
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.strokeStyle = '#00ff00';
+            context.lineWidth = 4;
+            context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+            
+            context.fillStyle = '#00ff00';
+            context.font = 'Bold 32px Arial';
+            context.textAlign = 'center';
+            context.fillText(dimData.designation, 256, 50);
+            
+            const threatColors = {
+                'safe': '#00ff00',
+                'low': '#88ff00',
+                'medium': '#ffff00',
+                'high': '#ff6600',
+                'extreme': '#ff0000',
+                'unknown': '#9900ff'
+            };
+            context.fillStyle = threatColors[dimData.threat];
+            context.font = 'Bold 24px Arial';
+            context.fillText(`[${dimData.threat.toUpperCase()}]`, 256, 90);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: texture, 
+                transparent: true 
             });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(4, 1, 1);
+            sprite.position.y = dimData.size + 1.5;
+            sphere.add(sprite);
+            
+            group.add(sphere);
+            scene.add(group);
+            dimensionObjects.push(group);
+            dimensionMap.set(dimData.id, group);
         });
         
-        // Create dwarf planets - Rick and Morty style
-        solarSystemData.dwarfPlanets.forEach(dwarfData => {
-            const dwarfGroup = new THREE.Group();
+        document.getElementById('dim-count').textContent = multiverseData.length;
+        
+        // Portal connections
+        const connections = [
+            ['c137', 'replacement'],
+            ['c137', 'cronenberg'],
+            ['c137', 'citadel'],
+            ['replacement', 'citadel'],
+            ['citadel', 'customs'],
+            ['citadel', 'doofus'],
+            ['citadel', 'jerryboree'],
+            ['federation', 'citadel'],
+            ['birdworld', 'federation'],
+            ['unity', 'replacement'],
+            ['microverse', 'replacement'],
+            ['froopyland', 'replacement'],
+            ['gazorpazorp', 'citadel'],
+            ['fascist', 'citadel']
+        ];
+        
+        const portalLines = [];
+        connections.forEach(([id1, id2]) => {
+            const dim1 = dimensionMap.get(id1);
+            const dim2 = dimensionMap.get(id2);
             
-            const orbitGeometry = new THREE.BufferGeometry();
-            const orbitPoints = [];
-            for (let i = 0; i <= 64; i++) {
-                const angle = (i / 64) * Math.PI * 2;
-                orbitPoints.push(
-                    Math.cos(angle) * dwarfData.distance,
-                    0,
-                    Math.sin(angle) * dwarfData.distance
-                );
+            if (dim1 && dim2) {
+                const points = [
+                    dim1.children[0].position,
+                    dim2.children[0].position
+                ];
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const material = new THREE.LineDashedMaterial({
+                    color: 0x00ff00,
+                    transparent: true,
+                    opacity: 0.3,
+                    dashSize: 0.5,
+                    gapSize: 0.3
+                });
+                const line = new THREE.Line(geometry, material);
+                line.computeLineDistances();
+                scene.add(line);
+                portalLines.push(line);
             }
-            orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitPoints, 3));
-            const orbitMaterial = new THREE.LineBasicMaterial({
-                color: 0xff6600,
-                transparent: true,
-                opacity: 0.4
-            });
-            const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
-            orbitLine.userData.orbit = true;
-            scene.add(orbitLine);
-            orbitLines.push(orbitLine);
-            
-            const dwarfGeometry = new THREE.SphereGeometry(dwarfData.radius, 20, 20);
-            const dwarfMaterial = new THREE.MeshToonMaterial({
-                color: dwarfData.color,
-                emissive: dwarfData.color,
-                emissiveIntensity: 0.3
-            });
-            const dwarf = new THREE.Mesh(dwarfGeometry, dwarfMaterial);
-            dwarf.userData = dwarfData;
-            dwarf.userData.orbitDistance = dwarfData.distance;
-            dwarf.userData.orbitSpeed = dwarfData.orbitSpeed;
-            dwarf.userData.orbitAngle = Math.random() * Math.PI * 2;
-            
-            const outlineGeometry = new THREE.SphereGeometry(dwarfData.radius * 1.08, 20, 20);
-            const outlineMaterial = new THREE.MeshBasicMaterial({
-                color: 0x000000,
-                side: THREE.BackSide
-            });
-            const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
-            dwarf.add(outline);
-            
-            // Orange portal ring for Pluto
-            const ringGeometry = new THREE.TorusGeometry(dwarfData.radius * 1.3, dwarfData.radius * 0.08, 16, 32);
-            const ringMaterial = new THREE.MeshBasicMaterial({
-                color: 0xff6600,
-                transparent: true,
-                opacity: 0.5
-            });
-            const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-            ring.rotation.x = Math.PI / 2;
-            ring.userData.portalRing = true;
-            dwarf.add(ring);
-            
-            dwarfGroup.add(dwarf);
-            scene.add(dwarfGroup);
-            celestialObjects.push(dwarfGroup);
-            objectCount++;
-            
-            // Create Pluto's moons
-            dwarfData.moons.forEach(moonData => {
-                const moonGroup = new THREE.Group();
-                
-                const moonGeometry = new THREE.SphereGeometry(moonData.radius, 16, 16);
-                const moonMaterial = new THREE.MeshToonMaterial({
-                    color: moonData.color,
-                    emissive: moonData.color,
-                    emissiveIntensity: 0.2
-                });
-                const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-                moon.userData = moonData;
-                moon.userData.type = 'moon';
-                moon.userData.orbitDistance = moonData.distance;
-                moon.userData.orbitSpeed = 0.03;
-                moon.userData.orbitAngle = Math.random() * Math.PI * 2;
-                moon.userData.parent = dwarf;
-                
-                const moonOutlineGeometry = new THREE.SphereGeometry(moonData.radius * 1.08, 16, 16);
-                const moonOutlineMaterial = new THREE.MeshBasicMaterial({
-                    color: 0x000000,
-                    side: THREE.BackSide
-                });
-                const moonOutline = new THREE.Mesh(moonOutlineGeometry, moonOutlineMaterial);
-                moon.add(moonOutline);
-                
-                moonGroup.add(moon);
-                dwarfGroup.add(moonGroup);
-                celestialObjects.push(moonGroup);
-                objectCount++;
-            });
         });
         
-        document.getElementById('obj-count').textContent = objectCount;
-        
-        // Interaction variables
+        // Interaction
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         const tooltip = document.getElementById('tooltip');
-        const celestialInfo = document.getElementById('celestial-info');
+        const dimensionInfo = document.getElementById('dimension-info');
         
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
         let selectedObject = null;
-        
-        // Touch controls
         let touchStartDistance = 0;
         let initialCameraZ = camera.position.z;
         let isTouching = false;
@@ -721,12 +1030,7 @@
                 const deltaX = e.touches[0].clientX - previousMousePosition.x;
                 const deltaY = e.touches[0].clientY - previousMousePosition.y;
                 
-                const rotationSpeed = 0.005;
-                camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), deltaX * rotationSpeed);
-                
-                const right = new THREE.Vector3();
-                camera.getWorldDirection(right);
-                right.cross(camera.up).normalize();
+                camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), deltaX * 0.005);
                 
                 previousMousePosition = { 
                     x: e.touches[0].clientX, 
@@ -742,12 +1046,8 @@
                 const scale = touchStartDistance / distance;
                 const newZ = initialCameraZ * scale;
                 
-                const dir = new THREE.Vector3();
-                camera.getWorldDirection(dir);
-                dir.normalize();
-                
                 const currentDistance = camera.position.length();
-                const targetDistance = Math.max(15, Math.min(150, newZ));
+                const targetDistance = Math.max(15, Math.min(100, newZ));
                 
                 camera.position.normalize().multiplyScalar(targetDistance);
                 camera.lookAt(0, 0, 0);
@@ -764,9 +1064,8 @@
                     mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
                     
                     raycaster.setFromCamera(mouse, camera);
-                    
                     const allMeshes = [];
-                    celestialObjects.forEach(group => {
+                    dimensionObjects.forEach(group => {
                         group.traverse(obj => {
                             if (obj.isMesh && obj.userData.name) {
                                 allMeshes.push(obj);
@@ -775,9 +1074,8 @@
                     });
                     
                     const intersects = raycaster.intersectObjects(allMeshes);
-                    
                     if (intersects.length > 0) {
-                        selectObject(intersects[0].object);
+                        selectDimension(intersects[0].object);
                     }
                 }
             }
@@ -786,11 +1084,7 @@
         function handleMove(e) {
             if (isDragging) {
                 const deltaX = e.clientX - previousMousePosition.x;
-                const deltaY = e.clientY - previousMousePosition.y;
-                
-                const rotationSpeed = 0.005;
-                camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), deltaX * rotationSpeed);
-                
+                camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), deltaX * 0.005);
                 previousMousePosition = { x: e.clientX, y: e.clientY };
                 camera.lookAt(0, 0, 0);
             }
@@ -800,9 +1094,8 @@
             
             if (!isTouching) {
                 raycaster.setFromCamera(mouse, camera);
-                
                 const allMeshes = [];
-                celestialObjects.forEach(group => {
+                dimensionObjects.forEach(group => {
                     group.traverse(obj => {
                         if (obj.isMesh && obj.userData.name) {
                             allMeshes.push(obj);
@@ -813,18 +1106,17 @@
                 const intersects = raycaster.intersectObjects(allMeshes);
                 
                 if (intersects.length > 0) {
-                    const obj = intersects[0].object;
-                    const data = obj.userData;
-                    
+                    const data = intersects[0].object.userData;
                     tooltip.style.display = 'block';
                     tooltip.style.left = e.clientX + 15 + 'px';
                     tooltip.style.top = e.clientY + 15 + 'px';
                     
-                    const typeClass = `type-${data.type}`;
+                    const threatClass = `threat-${data.threat}`;
                     tooltip.innerHTML = `
                         <strong style="color: #00ffff;">${data.name}</strong>
-                        <span class="type-tag ${typeClass}">${data.type.toUpperCase()}</span><br>
-                        <em>${data.info}</em>
+                        <span class="threat-tag ${threatClass}">${data.threat.toUpperCase()}</span><br>
+                        <em style="color: #88ff88;">${data.type}</em><br>
+                        <div style="margin-top: 3px; font-size: 9px;">${data.description}</div>
                     `;
                 } else {
                     tooltip.style.display = 'none';
@@ -836,9 +1128,8 @@
             if (isTouching) return;
             
             raycaster.setFromCamera(mouse, camera);
-            
             const allMeshes = [];
-            celestialObjects.forEach(group => {
+            dimensionObjects.forEach(group => {
                 group.traverse(obj => {
                     if (obj.isMesh && obj.userData.name) {
                         allMeshes.push(obj);
@@ -847,13 +1138,12 @@
             });
             
             const intersects = raycaster.intersectObjects(allMeshes);
-            
             if (intersects.length > 0) {
-                selectObject(intersects[0].object);
+                selectDimension(intersects[0].object);
             }
         });
         
-        function selectObject(obj) {
+        function selectDimension(obj) {
             if (selectedObject) {
                 selectedObject.material.emissiveIntensity = 0.2;
             }
@@ -862,61 +1152,39 @@
             selectedObject.material.emissiveIntensity = 0.8;
             
             const data = selectedObject.userData;
-            const typeClass = `type-${data.type}`;
+            const threatClass = `threat-${data.threat}`;
             
-            let factsHTML = '';
-            if (data.facts) {
-                factsHTML = '<div><strong>Facts:</strong></div><div style="margin-left: 10px;">';
-                factsHTML += data.facts.map(f => `• ${f}`).join('<br>');
-                factsHTML += '</div>';
+            let featuresHTML = '';
+            if (data.features) {
+                featuresHTML = '<div style="margin-top: 5px;"><strong>Features:</strong></div><div style="margin-left: 10px; font-size: 9px;">';
+                featuresHTML += data.features.map(f => `• ${f}`).join('<br>');
+                featuresHTML += '</div>';
             }
             
-            // Rick's snarky comments
-            const rickComments = {
-                'Sun': "*burp* It's a giant ball of nuclear fusion, Morty. Don't stare at it.",
-                'Mercury': "Closest to the sun. Hotter than your mix tape, Morty.",
-                'Venus': "Toxic atmosphere, acid rain, 900 degrees. Basically your aunt's house.",
-                'Earth': "C-137's version got Cronenberged. This one's... okay I guess.",
-                'Moon': "Allegedly made of cheese. Allegedly. *burp*",
-                'Mars': "Red planet. Elon's wet dream. Probably gonna terraform it wrong.",
-                'Jupiter': "*burp* Big boy. Could fit like a thousand Earths. Who's counting though?",
-                'Saturn': "Ooh look at me, I have rings! *burp* Show off.",
-                'Uranus': "Hehe. You said Uranus. Classic Morty.",
-                'Neptune': "It's blue, it's far, it's got supersonic winds. What else you want?",
-                'Pluto': "NOT A PLANET ANYMORE, MORTY! Get over it!",
-                'Titan': "Saturn's moon with atmosphere. Could have life. Probably doesn't.",
-                'Europa': "Ice moon with ocean. Might have alien fish. Might not. *burp*",
-                'Io': "Most volcanically active body. Like my stomach after Taco Bell.",
-                'Ganymede': "Biggest moon in the solar system. Overachiever."
-            };
-            
-            const rickComment = rickComments[data.name] || "*burp* Yeah, it's a celestial body, Morty. What'd you expect?";
-            
-            celestialInfo.innerHTML = `
-                <div class="celestial-label">${data.name}</div>
-                <span class="type-tag ${typeClass}">${data.type.toUpperCase()}</span><br>
-                <div style="margin-top: 5px;"><strong>Info:</strong> ${data.info}</div>
-                ${factsHTML}
+            dimensionInfo.innerHTML = `
+                <div class="dimension-label">${data.name}</div>
+                <span class="threat-tag ${threatClass}">${data.threat.toUpperCase()}</span>
+                <div style="color: #00ffff; margin-top: 3px;">${data.type}</div>
+                <div style="margin-top: 5px; font-size: 10px;"><strong>Info:</strong> ${data.description}</div>
+                ${featuresHTML}
                 <div style="margin-top: 8px; padding: 5px; background: rgba(0, 100, 0, 0.3); border-left: 2px solid #00ffff; font-style: italic; color: #00ffff; font-size: 9px;">
-                    ${rickComment}
+                    ${data.rickComment}
                 </div>
             `;
         }
         
-        // Zoom with mouse wheel
+        // Zoom
         renderer.domElement.addEventListener('wheel', (e) => {
             e.preventDefault();
-            
             const zoomSpeed = 0.1;
             const currentDistance = camera.position.length();
             const newDistance = currentDistance + e.deltaY * zoomSpeed;
-            const clampedDistance = Math.max(15, Math.min(150, newDistance));
-            
+            const clampedDistance = Math.max(15, Math.min(100, newDistance));
             camera.position.normalize().multiplyScalar(clampedDistance);
             camera.lookAt(0, 0, 0);
         }, { passive: false });
         
-        // View control functions
+        // View controls
         function setView(viewType) {
             document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -924,25 +1192,61 @@
             let targetPos;
             switch(viewType) {
                 case 'overview':
-                    targetPos = new THREE.Vector3(0, 40, 80);
-                    document.getElementById('current-view').textContent = 'Overview';
+                    targetPos = new THREE.Vector3(0, 25, 50);
                     break;
-                case 'inner':
-                    targetPos = new THREE.Vector3(0, 15, 30);
-                    document.getElementById('current-view').textContent = 'Inner System';
+                case 'central':
+                    const citadel = dimensionMap.get('citadel');
+                    if (citadel) {
+                        const pos = citadel.children[0].position;
+                        targetPos = new THREE.Vector3(pos.x + 10, pos.y + 5, pos.z + 10);
+                    }
                     break;
-                case 'outer':
-                    targetPos = new THREE.Vector3(0, 30, 120);
-                    document.getElementById('current-view').textContent = 'Outer System';
+                case 'earth':
+                    const earth = dimensionMap.get('replacement');
+                    if (earth) {
+                        const pos = earth.children[0].position;
+                        targetPos = new THREE.Vector3(pos.x + 8, pos.y + 8, pos.z + 8);
+                    }
+                    break;
+                case 'danger':
+                    targetPos = new THREE.Vector3(-15, -10, 20);
                     break;
             }
             
-            animateCamera(targetPos);
+            if (targetPos) animateCamera(targetPos);
+        }
+        
+        function goToDimension(dimId) {
+            const dim = dimensionMap.get(dimId);
+            if (dim) {
+                const sphere = dim.children[0];
+                selectDimension(sphere);
+                const pos = sphere.position;
+                const targetPos = new THREE.Vector3(pos.x + 8, pos.y + 5, pos.z + 8);
+                animateCamera(targetPos);
+            }
+        }
+        
+        function filterThreat(level) {
+            if (level === 'all') {
+                hiddenDimensions.clear();
+                dimensionObjects.forEach(obj => obj.visible = true);
+            } else {
+                hiddenDimensions.clear();
+                dimensionObjects.forEach(obj => {
+                    const data = obj.children[0].userData;
+                    if (data.threat !== level) {
+                        obj.visible = false;
+                        hiddenDimensions.add(data.id);
+                    } else {
+                        obj.visible = true;
+                    }
+                });
+            }
         }
         
         function resetCamera() {
-            animateCamera(new THREE.Vector3(0, 40, 80));
-            document.getElementById('current-view').textContent = 'Overview';
+            animateCamera(new THREE.Vector3(0, 25, 50));
             document.querySelectorAll('.view-btn').forEach((btn, i) => {
                 btn.classList.remove('active');
                 if (i === 0) btn.classList.add('active');
@@ -970,14 +1274,11 @@
             animate();
         }
         
-        // Portal Jump Effect - Rick and Morty style
         function portalJump() {
-            // Create portal flash
             const portalFlash = new THREE.PointLight(0x00ff00, 10, 50);
             portalFlash.position.copy(camera.position);
             scene.add(portalFlash);
             
-            // Create expanding portal ring
             const portalRingGeometry = new THREE.TorusGeometry(2, 0.5, 16, 32);
             const portalRingMaterial = new THREE.MeshBasicMaterial({
                 color: 0x00ff00,
@@ -990,7 +1291,6 @@
             portalRing.lookAt(0, 0, 0);
             scene.add(portalRing);
             
-            // Create portal liquid splatter particles
             const particles = [];
             for (let i = 0; i < 30; i++) {
                 const particleGeometry = new THREE.SphereGeometry(0.15, 8, 8);
@@ -1013,50 +1313,40 @@
                 particles.push(particle);
             }
             
-            // Random planet to jump to
-            const randomPlanet = celestialObjects[Math.floor(Math.random() * celestialObjects.length)];
+            const visibleDimensions = dimensionObjects.filter(obj => obj.visible);
+            const randomDim = visibleDimensions[Math.floor(Math.random() * visibleDimensions.length)];
             let targetPosition;
-            randomPlanet.traverse(obj => {
-                if (obj.userData.name && obj.userData.orbitDistance) {
-                    const distance = obj.userData.orbitDistance + 8;
-                    targetPosition = new THREE.Vector3(
-                        obj.position.x + distance,
-                        distance * 0.5,
-                        obj.position.z + distance
-                    );
-                }
-            });
             
-            if (!targetPosition) {
+            if (randomDim) {
+                const pos = randomDim.children[0].position;
+                targetPosition = new THREE.Vector3(pos.x + 8, pos.y + 5, pos.z + 8);
+                selectDimension(randomDim.children[0]);
+            } else {
                 targetPosition = new THREE.Vector3(
                     Math.random() * 40 - 20,
-                    20,
+                    Math.random() * 20,
                     Math.random() * 40 - 20
                 );
             }
             
-            // Animate portal effect
             let frame = 0;
             const portalAnimation = setInterval(() => {
                 frame++;
                 
-                // Expand and fade ring
                 const scale = 1 + frame * 0.4;
                 portalRing.scale.set(scale, scale, scale);
                 portalRing.material.opacity = Math.max(0, 1 - (frame / 25));
                 portalRing.rotation.z += 0.1;
                 
-                // Move and fade particles with drip effect
                 particles.forEach(p => {
                     p.position.add(p.userData.velocity);
-                    p.userData.velocity.y -= 0.02; // Gravity drip
+                    p.userData.velocity.y -= 0.02;
                     p.material.opacity = Math.max(0, 1 - (frame / 25));
                     
                     const wobble = Math.sin(frame * 0.3) * 0.1;
                     p.scale.set(1 + wobble, 1 + wobble, 1 + wobble);
                 });
                 
-                // Dim and flicker light
                 portalFlash.intensity = Math.max(0, 10 - frame * 0.5);
                 
                 if (frame >= 25) {
@@ -1067,30 +1357,8 @@
                 }
             }, 30);
             
-            // Jump camera after short delay
             setTimeout(() => {
                 animateCamera(targetPosition);
-                
-                // Show Rick's comment
-                const comments = [
-                    "*burp* There we go, Morty!",
-                    "Wubba lubba dub dub!",
-                    "And that's the wayyyy the news goes!",
-                    "Grassssss tastes bad!",
-                    "Lick lick lick my balls!",
-                    "Hit the sack, Jack!",
-                    "Uh oh, somersault jump!",
-                    "AIDS!",
-                    "No jumping in the sewer!"
-                ];
-                const randomComment = comments[Math.floor(Math.random() * comments.length)];
-                
-                celestialInfo.innerHTML = `
-                    <div class="celestial-label">Portal Jump Complete!</div>
-                    <div style="margin-top: 5px; color: #00ffff; font-style: italic;">
-                        ${randomComment}
-                    </div>
-                `;
             }, 300);
         }
         
@@ -1100,57 +1368,21 @@
             requestAnimationFrame(animate);
             time += 0.01;
             
-            // Animate sun with simple pulsing glow
-            sunGroup.rotation.y += 0.005;
-            
-            sunGroup.traverse(obj => {
-                // Animate glow layers
-                if (obj.userData.glowLayer) {
-                    const layer = obj.userData.glowLayer;
-                    obj.rotation.y += 0.01 * layer;
-                    const pulse = Math.sin(time * 2 + layer) * 0.1 + 1;
-                    obj.scale.set(pulse, pulse, pulse);
-                }
+            // Rotate dimensions
+            dimensionObjects.forEach((group, i) => {
+                group.rotation.y += 0.005;
                 
-                // Animate sun particles
-                if (obj.userData.sunParticle) {
-                    obj.userData.angle += obj.userData.speed;
-                    const wobble = Math.sin(time * 3 + obj.userData.angle) * 0.3;
-                    obj.position.x = Math.cos(obj.userData.angle) * (obj.userData.radius + wobble);
-                    obj.position.y = Math.sin(obj.userData.angle) * (obj.userData.radius + wobble);
-                    obj.position.z = Math.sin(time * 2 + obj.userData.angle) * 0.5;
-                    
-                    const scale = 0.7 + Math.sin(time * 4 + obj.userData.angle) * 0.3;
-                    obj.scale.set(scale, scale, scale);
+                // Pulse extreme threat dimensions
+                const sphere = group.children[0];
+                if (sphere.userData.threat === 'extreme') {
+                    const pulse = Math.sin(time * 3 + i) * 0.1 + 1;
+                    group.scale.set(pulse, pulse, pulse);
                 }
             });
             
-            // Orbit planets - simple rotation
-            celestialObjects.forEach(group => {
-                group.traverse(obj => {
-                    if (obj.userData.orbitSpeed !== undefined && obj.userData.orbitDistance !== undefined) {
-                        obj.userData.orbitAngle += obj.userData.orbitSpeed;
-                        
-                        if (obj.userData.type === 'moon' && obj.userData.parent) {
-                            // Moon orbits around its parent planet
-                            obj.position.x = Math.cos(obj.userData.orbitAngle) * obj.userData.orbitDistance;
-                            obj.position.z = Math.sin(obj.userData.orbitAngle) * obj.userData.orbitDistance;
-                        } else {
-                            // Planet orbits around sun
-                            obj.position.x = Math.cos(obj.userData.orbitAngle) * obj.userData.orbitDistance;
-                            obj.position.z = Math.sin(obj.userData.orbitAngle) * obj.userData.orbitDistance;
-                        }
-                        
-                        obj.rotation.y += 0.01;
-                    }
-                });
-            });
-            
-            // Subtle pulse on orbit lines
-            orbitLines.forEach((line, i) => {
-                if (line.userData.orbit) {
-                    line.material.opacity = 0.3 + Math.sin(time * 1.5 + i) * 0.1;
-                }
+            // Pulse portal lines
+            portalLines.forEach((line, i) => {
+                line.material.opacity = 0.2 + Math.sin(time * 2 + i) * 0.15;
             });
             
             // Rotate starfield
@@ -1162,7 +1394,7 @@
         
         animate();
         
-        // Handle window resize
+        // Handle resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
